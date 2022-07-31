@@ -32,4 +32,11 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
         EOF(Position(2,2))
       )
     }
+
+ // it should "return open any empty string" in {
+ //       Lexer.tokenize(Source.fromString("\"\"")).right.get shouldBe List(
+ //         STRING("", Position(1, 1)),
+ //         EOF(Position(1,3))
+ //       )
+ //     }
 }
