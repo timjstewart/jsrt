@@ -33,12 +33,12 @@ object Lexer {
   def tokenize(input: Source): Either[String, List[Token]] = {
     var curPos = Position(1, 0)
     try {
-      Right(input.map { c =>
+      Right(input.flatMap { c =>
         c match {
           case '\n' =>
             val newLinePos = curPos.copy(column = curPos.column + 1)
             curPos = curPos.moveByChar(c)
-            NEWLINE(newLinePos)
+            List(NEWLINE(newLinePos))
           case _ =>
             curPos = curPos.moveByChar(c)
             c match {
@@ -46,19 +46,19 @@ object Lexer {
                 val origPos = curPos.copy()
                 val (string, newPos) = tokenizeString(input, curPos)
                 curPos = newPos
-                STRING(string, origPos)
-              case ',' => COMMA(curPos)
-              case '[' => OPEN_SQUARE_BRACKET(curPos)
-              case ']' => CLOSE_SQUARE_BRACKET(curPos)
-              case '{' => OPEN_CURLY_BRACE(curPos)
-              case '}' => CLOSE_CURLY_BRACE(curPos)
-              case ':' => COLON(curPos)
+                List(STRING(string, origPos))
+              case ',' => List(COMMA(curPos))
+              case '[' => List(OPEN_SQUARE_BRACKET(curPos))
+              case ']' => List(CLOSE_SQUARE_BRACKET(curPos))
+              case '{' => List(OPEN_CURLY_BRACE(curPos))
+              case '}' => List(CLOSE_CURLY_BRACE(curPos))
+              case ':' => List(COLON(curPos))
               case 't' =>
                 val origPos = curPos.copy()
                 tokenizeBool(input, c, curPos, "true") match {
                   case Right(Tuple2(token, newPos)) =>
                     curPos = newPos
-                    token
+                    List(token)
                   case Left(error) => throw new LexerError(error)
                 }
               case 'f' =>
@@ -66,18 +66,18 @@ object Lexer {
                 tokenizeBool(input, c, curPos, "false") match {
                   case Right(Tuple2(token, newPos)) =>
                     curPos = newPos
-                    token
+                    List(token)
                   case Left(error) => throw new LexerError(error)
                 }
-              case digit if digit.isDigit => 
+              case digit if digit.isDigit =>
                 val origPos = curPos.copy()
                 tokenizeNumber(input, c, curPos) match {
-                  case Right(Tuple2(token, newPos)) =>
+                  case Right(Tuple2(tokens, newPos)) =>
                     curPos = newPos
-                    token
+                    tokens
                   case Left(error) => throw new LexerError(error)
                 }
-              case _ => CHARACTER(c, curPos)
+              case _ => List(CHARACTER(c, curPos))
             }
         }
       }.toList :+ EOF(curPos.copy(column = curPos.column + 1)))
@@ -152,10 +152,10 @@ object Lexer {
         input: Iterator[Char],
         firstChar: Char,
         startPos: Position,
-    ): Either[String, Tuple2[NUMBER, Position]] = {
-    Right(NUMBER(123.0, startPos), startPos)
-      // require(firstChar.isDigit)
-      // var pos = startPos.copy()
+    ): Either[String, Tuple2[List[Token], Position]] = {
+      require(firstChar.isDigit)
+      var pos = startPos.copy()
+      Right(List(NUMBER(123.0, startPos)), startPos)
       // try {
       //     val readChar = input.next()
       //     pos = pos.moveByChar(readChar)

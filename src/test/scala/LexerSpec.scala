@@ -83,18 +83,18 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "return a true value" in {
-      Lexer.tokenize(Source.fromString("true")).right.get shouldBe List(
-        BOOL_TRUE(Position(1, 1)),
-        EOF(Position(1, 5))
-      )
-    }
+    Lexer.tokenize(Source.fromString("true")).right.get shouldBe List(
+      BOOL_TRUE(Position(1, 1)),
+      EOF(Position(1, 5))
+    )
+  }
 
   it should "return a false value" in {
-        Lexer.tokenize(Source.fromString("false")).right.get shouldBe List(
-          BOOL_FALSE(Position(1, 1)),
-          EOF(Position(1, 6))
-        )
-      }
+    Lexer.tokenize(Source.fromString("false")).right.get shouldBe List(
+      BOOL_FALSE(Position(1, 1)),
+      EOF(Position(1, 6))
+    )
+  }
 
   // it should "return a whole number" in {
   //         Lexer.tokenize(Source.fromString("123")).right.get shouldBe List(
