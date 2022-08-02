@@ -95,4 +95,11 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
           EOF(Position(1, 6))
         )
       }
+
+  // it should "return a whole number" in {
+  //         Lexer.tokenize(Source.fromString("123")).right.get shouldBe List(
+  //           NUMBER(123.0, Position(1, 1)),
+  //           EOF(Position(1, 4))
+  //         )
+  //       }
 }

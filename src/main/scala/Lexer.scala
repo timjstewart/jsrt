@@ -69,6 +69,14 @@ object Lexer {
                     token
                   case Left(error) => throw new LexerError(error)
                 }
+              case digit if digit.isDigit => 
+                val origPos = curPos.copy()
+                tokenizeNumber(input, c, curPos) match {
+                  case Right(Tuple2(token, newPos)) =>
+                    curPos = newPos
+                    token
+                  case Left(error) => throw new LexerError(error)
+                }
               case _ => CHARACTER(c, curPos)
             }
         }
@@ -139,4 +147,27 @@ object Lexer {
         Left(ex.getMessage())
     }
   }
+
+  private def tokenizeNumber(
+        input: Iterator[Char],
+        firstChar: Char,
+        startPos: Position,
+    ): Either[String, Tuple2[NUMBER, Position]] = {
+    Right(NUMBER(123.0, startPos), startPos)
+      // require(firstChar.isDigit)
+      // var pos = startPos.copy()
+      // try {
+      //     val readChar = input.next()
+      //     pos = pos.moveByChar(readChar)
+      //     if (readChar != char) {
+      //       throw new Exception(
+      //         "mismatch: expected: %s, read: %s".format(char, readChar)
+      //       )
+      //     }
+      // } catch {
+      //   case ex: Exception =>
+      //     println("EX: %s".format(ex.getMessage()))
+      //     Left(ex.getMessage())
+      // }
+    }
 }
