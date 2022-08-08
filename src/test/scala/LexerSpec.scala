@@ -58,12 +58,13 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
     )
   }
 
-  // it should "return a non-empty string containing a space" in {
-  //   Lexer.tokenize("\"test one\"").right.get shouldBe List(
-  //     StringTOken("test one", Buffer(1, 1)),
-  //     EOF(Buffer(1, 11))
-  //   )
-  // }
+  it should "return a non-empty string containing a space" in {
+    val text = "\"test one\""
+    Lexer.tokenize(text).right.get._1 shouldBe List(
+      StringToken(text, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 11, 10))
+    )
+  }
 
   // it should "return a string with a escaped double quote" in {
   //   Lexer.tokenize(Source.fromString(""""foo\"bar"""")).right.get shouldBe List(
