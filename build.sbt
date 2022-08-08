@@ -10,6 +10,8 @@
 
 scalaVersion := "2.13.8"
 
+scalacOptions := Seq("-unchecked", "-deprecation")
+
 // Set to false or remove if you want to show stubs as linking errors
 nativeLinkStubs := true
 

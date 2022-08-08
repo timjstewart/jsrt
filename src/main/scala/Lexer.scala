@@ -14,7 +14,6 @@ object Lexer {
     val currentChar = if (atEof) None else Some(text(index))
 
     def advance(): Buffer = {
-      println("ADVANCE")
       if (index + 1 == text.length) {
         this.copy(column = column + 1, index = index + 1)
       } else if (index + 1 > text.length) {
@@ -25,7 +24,6 @@ object Lexer {
             this.copy(line = line + 1, column = 1, index = index + 1)
           case Some('\r') => this.copy(column = 1, index = index + 1)
           case Some(c) =>
-            println("OTHER: %s".format(c))
             this.copy(column = column + 1, index = index + 1)
           case None => this
         }
@@ -39,9 +37,7 @@ object Lexer {
     def scanWhile(
         cond: Buffer => Boolean
     )(f: Buffer => Result, accum: List[Token] = Nil): Result = {
-      println("SCAN")
       if (!cond(this)) {
-        println("isEOF")
         Right(Tuple2(accum, this))
       } else {
         f(this) match {
@@ -89,7 +85,6 @@ object Lexer {
     var buffer = Buffer(input)
     buffer
       .scan { b =>
-        println("SCANNED: %s".format(b))
         b.currentChar match {
           case Some(',')  => success(b.advance(), CommaToken(b))
           case Some('[')  => success(b.advance(), OpenSquareBracketToken(b))
@@ -100,13 +95,11 @@ object Lexer {
           case Some('\n') => success(b.advance(), NewLineToken(b))
           case Some('"') =>
             val x = tokenizeString(b)
-            println("TOK STR: %s".format(x))
             x
           case c => Left("lexer fail: %s".format(c))
         }
       }
       .map { case Tuple2(tokens, remaining) =>
-        println("HIT EOF 1")
         Tuple2(tokens :+ EOF(remaining), remaining)
       }
   }
@@ -129,23 +122,19 @@ object Lexer {
             escaped = false
             success(buffer.advance())
           case Some('"') =>
-            println("END OF STRING: %s".format(str.toString))
             done = true
             str.append('"')
             success(buffer.advance())
           case Some(c) =>
-            println("LETTER: %s".format(c))
             str.append(c)
             success(buffer.advance())
           case None =>
-            println("NONE CHAR")
             str.append('"')
             done = true
             success(buffer.advance())
         }
       }
       .map { case Tuple2(tokens, remaining) =>
-        println("STR 1: %s".format(str.toString))
         Tuple2(
           tokens :+ StringToken(str.toString, startPos),
           remaining.advance()
