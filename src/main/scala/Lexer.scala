@@ -126,6 +126,7 @@ object Lexer {
             success(buffer.advance())
           case Some('"') if escaped =>
             str.append('"')
+            escaped = false
             success(buffer.advance())
           case Some('"') =>
             println("END OF STRING: %s".format(str.toString))

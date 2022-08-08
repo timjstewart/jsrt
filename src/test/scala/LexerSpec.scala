@@ -66,12 +66,13 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
     )
   }
 
-  // it should "return a string with a escaped double quote" in {
-  //   Lexer.tokenize(Source.fromString(""""foo\"bar"""")).right.get shouldBe List(
-  //     STRING("""foo\"bar""", Buffer(1, 1)),
-  //     EOF(Buffer(1, 11))
-  //   )
-  // }
+  it should "return a string with a escaped double quote" in {
+    val text = """"foo\"bar""""
+    Lexer.tokenize(text).right.get._1 shouldBe List(
+      StringToken(text, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 11, 10))
+    )
+  }
 
   // it should "return a string containing a quoted string" in {
   //   Lexer
