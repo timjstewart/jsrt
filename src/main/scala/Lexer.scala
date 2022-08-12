@@ -117,9 +117,9 @@ object Lexer {
           case Some('"')  => tokenizeString(b)
           case Some('t')  => tokenizeBool(b)
           case Some('f')  => tokenizeBool(b)
-          case Some(c) if c.isWhitespace => success(b.advance())
+          case Some(c) if c.isWhitespace        => success(b.advance())
           case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
-          case c                    => Left("lexer fail: %s".format(c))
+          case c => Left("lexer fail: %s".format(c))
         }
       }
       .map { case Tuple2(tokens, remaining) =>

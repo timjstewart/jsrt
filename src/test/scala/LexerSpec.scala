@@ -9,7 +9,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
 
   import Lexer._
 
-  def tokenValues(text: String): List[String] =
+  private def tokenValues(text: String): List[String] =
     Lexer.tokenize(text).value._1.map(_.value)
 
   "A lexer" should "return EOF for an empty stream" in {
