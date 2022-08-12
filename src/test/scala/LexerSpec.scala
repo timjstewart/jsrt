@@ -9,6 +9,9 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
 
   import Lexer._
 
+  def tokenValues(text: String): List[String] =
+    Lexer.tokenize(text).value._1.map(_.value)
+
   "A lexer" should "return EOF for an empty stream" in {
     Lexer.tokenize("").value._1 shouldBe List(
       EOF(Buffer("", 1, 1))
@@ -36,7 +39,6 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     val text = "[\n]"
     Lexer.tokenize(text).value._1 shouldBe List(
       OpenSquareBracketToken(Buffer(text, 1, 1, 0)),
-      NewLineToken(Buffer(text, 1, 2, 1)),
       CloseSquareBracketToken(Buffer(text, 2, 1, 2)),
       EOF(Buffer(text, 2, 2, 3))
     )
@@ -159,7 +161,114 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   }
 
   it should "return tokens for an array" in {
-    val text = "[ 1, 2,3]"
-    println(Lexer.tokenize(text))
+    val text = """[ 1, 2,3, true, false, "Tim"]"""
+    tokenValues(text) should be(
+      List(
+        "[",
+        "1.0",
+        ",",
+        "2.0",
+        ",",
+        "3.0",
+        ",",
+        "true",
+        ",",
+        "false",
+        ",",
+        """"Tim"""",
+        "]",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle nested arrays" in {
+    val text = """[1,[2],3]"""
+    tokenValues(text) should be(
+      List(
+        "[",
+        "1.0",
+        ",",
+        "[",
+        "2.0",
+        "]",
+        ",",
+        "3.0",
+        "]",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle an empty object" in {
+    val text = """{}"""
+    tokenValues(text) should be(
+      List(
+        "{",
+        "}",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle an object with a property" in {
+    val text = """{"happy": true}"""
+    tokenValues(text) should be(
+      List(
+        "{",
+        """"happy"""",
+        ":",
+        "true",
+        "}",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle an object with a nested object" in {
+    val text = """{"happy": {}}"""
+    tokenValues(text) should be(
+      List(
+        "{",
+        """"happy"""",
+        ":",
+        "{",
+        "}",
+        "}",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle an object with a nested object with whitespace" in {
+    val text = """
+{
+    "happy": {
+	}
+}
+"""
+    tokenValues(text) should be(
+      List(
+        "{",
+        """"happy"""",
+        ":",
+        "{",
+        "}",
+        "}",
+        "<EOF>"
+      )
+    )
+  }
+
+  it should "handle a string with a new line in it" in {
+    val text = """"line1
+line2"
+  """
+    tokenValues(text) should be(
+      List(
+        "\"line1\nline2\"",
+        "<EOF>"
+      )
+    )
   }
 }

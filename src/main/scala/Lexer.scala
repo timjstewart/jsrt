@@ -20,7 +20,7 @@ object Lexer {
       if (index + 1 == text.length) {
         this.copy(column = column + 1, index = index + 1)
       } else if (index + 1 > text.length) {
-        // returning this means that advance had no effect.
+        // returning `this` means that advance had no effect.
         this
       } else {
         currentChar match {
@@ -63,15 +63,13 @@ object Lexer {
           case Right(Tuple2(tokens, remaining)) if !atEof =>
             remaining.scanWhile(cond)(f, accum ::: tokens)
           case Right(Tuple2(tokens, remaining)) =>
-            println("RIGHT")
             Right(Tuple2(tokens, remaining))
         }
       }
     }
   }
 
-  sealed abstract class Token(value: String, pos: Buffer)
-  case class NewLineToken(pos: Buffer) extends Token("\n", pos)
+  sealed abstract class Token(val value: String, pos: Buffer)
   case class QuoteToken(pos: Buffer) extends Token("\"", pos)
   case class CommaToken(pos: Buffer) extends Token(",", pos)
   case class OpenSquareBracketToken(pos: Buffer) extends Token("[", pos)
@@ -79,16 +77,16 @@ object Lexer {
   case class OpenCurlyBraceToken(pos: Buffer) extends Token("{", pos)
   case class CloseCurlyBraceToken(pos: Buffer) extends Token("}", pos)
   case class ColonToken(pos: Buffer) extends Token(":", pos)
-  case class CharacterToken(value: Character, pos: Buffer)
-      extends Token(value.toString, pos)
-  case class StringToken(value: String, pos: Buffer) extends Token(value, pos)
+  case class CharacterToken(char: Character, pos: Buffer)
+      extends Token(char.toString, pos)
+  case class StringToken(string: String, pos: Buffer) extends Token(string, pos)
   case class BoolTrueToken(pos: Buffer) extends Token(True, pos)
   case class BoolFalseToken(pos: Buffer) extends Token(False, pos)
-  case class NumberToken(value: Double, pos: Buffer)
-      extends Token(value.toString, pos)
-  case class GenericToken(value: String, pos: Buffer) extends Token(value, pos)
+  case class NumberToken(number: Double, pos: Buffer)
+      extends Token(number.toString, pos)
+  case class GenericToken(text: String, pos: Buffer) extends Token(text, pos)
 
-  case class EOF(pos: Buffer) extends Token("EOF", pos)
+  case class EOF(pos: Buffer) extends Token("<EOF>", pos)
 
   class LexerError(message: String) extends Exception(message)
 
@@ -115,11 +113,11 @@ object Lexer {
           case Some('{')  => success(b.advance(), OpenCurlyBraceToken(b))
           case Some('}')  => success(b.advance(), CloseCurlyBraceToken(b))
           case Some(':')  => success(b.advance(), ColonToken(b))
-          case Some('\n') => success(b.advance(), NewLineToken(b))
+          case Some('\n') => success(b.advance())
           case Some('"')  => tokenizeString(b)
           case Some('t')  => tokenizeBool(b)
           case Some('f')  => tokenizeBool(b)
-          case Some(' ')  => success(b.advance())
+          case Some(c) if c.isWhitespace => success(b.advance())
           case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
           case c                    => Left("lexer fail: %s".format(c))
         }
@@ -206,7 +204,7 @@ object Lexer {
         if (!terminated) str.append('"')
         Tuple2(
           tokens :+ StringToken(str.toString, startPos),
-          remaining.advance()
+          remaining
         )
       }
   }
