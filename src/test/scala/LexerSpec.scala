@@ -27,7 +27,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
     val text = "[]"
     Lexer.tokenize(text).toOption.get._1 shouldBe List(
       OpenSquareBracketToken(Buffer(text, 1, 1, 0)),
-      CloseSquareBracketToken(Buffer(text, 1, 2 ,1)),
+      CloseSquareBracketToken(Buffer(text, 1, 2, 1)),
       EOF(Buffer(text, 1, 3, 2))
     )
   }
@@ -100,19 +100,19 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "return a false value" in {
-      val text = "false"
+    val text = "false"
     println(Lexer.tokenize(text))
-      Lexer.tokenize(text).toOption.get._1 shouldBe List(
-        BoolFalseToken(Buffer(text, 1, 1, 0)),
-        EOF(Buffer(text, 1, 6, 5))
-      )
-    }
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      BoolFalseToken(Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 6, 5))
+    )
+  }
 
-
-  // // it should "return a whole number" in {
-  // //         Lexer.tokenize(Source.fromString("123")).toOption.get shouldBe List(
-  // //           NUMBER(123.0, Buffer(1, 1)),
-  // //           EOF(Buffer(1, 4))
-  // //         )
-  // //       }
+  it should "return a whole number" in {
+    val text = "123"
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      NumberToken(123.0, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 4, 3))
+    )
+  }
 }

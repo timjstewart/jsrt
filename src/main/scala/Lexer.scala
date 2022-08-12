@@ -121,12 +121,29 @@ object Lexer {
           case Some('"')  => tokenizeString(b)
           case Some('t')  => tokenizeBool(b)
           case Some('f')  => tokenizeBool(b)
-          case c          => Left("lexer fail: %s".format(c))
+          case Some(c) if c.isDigit => tokenizeNumber(b)
+          case c                    => Left("lexer fail: %s".format(c))
         }
       }
       .map { case Tuple2(tokens, remaining) =>
         Tuple2(tokens :+ EOF(remaining), remaining)
       }
+  }
+
+  private def tokenizeNumber(startPos: Buffer): Result = {
+    var accumulator = 0.0
+    var done = false
+    startPos.scanWhile(_ => !done) { buffer =>
+      buffer.currentChar match {
+        case Some(c) if (c.isDigit) =>
+          accumulator *= 10
+          accumulator += c.asDigit
+          Right(Tuple2(List.empty[Token], buffer.advance()))
+        case _ =>
+          done = true
+          Right(Tuple2(List(NumberToken(accumulator, startPos)), buffer.advance()))
+      }
+    }
   }
 
   private def tokenizeBool(startPos: Buffer): Result = {
@@ -152,22 +169,27 @@ object Lexer {
       .advance() // pass the first double quote
       .scanWhile(_ => !done) { buffer =>
         buffer.currentChar match {
+          // Escape character
           case Some('\\') =>
             escaped = true
             str.append('\\')
             success(buffer.advance())
+          // Escaped double quote
           case Some('"') if escaped =>
             str.append('"')
             escaped = false
             success(buffer.advance())
+          // Unescaped double quote
           case Some('"') =>
             str.append('"')
             done = true
             terminated = true
             success(buffer.advance())
+          // All other characters
           case Some(c) =>
             str.append(c)
             success(buffer.advance())
+          // End of string
           case None =>
             done = true
             terminated = true
