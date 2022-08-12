@@ -108,6 +108,22 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
     )
   }
 
+  it should "return a single digit whole number" in {
+    val text = "1"
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      NumberToken(1.0, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 2, 1))
+    )
+  }
+
+  it should "return a 0" in {
+    val text = "0"
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      NumberToken(0.0, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 2, 1))
+    )
+  }
+
   it should "return a whole number" in {
     val text = "123"
     Lexer.tokenize(text).toOption.get._1 shouldBe List(
@@ -115,4 +131,12 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
       EOF(Buffer(text, 1, 4, 3))
     )
   }
+
+  it should "return a whole number followed by a space" in {
+      val text = "123 "
+      Lexer.tokenize(text).toOption.get._1 shouldBe List(
+        NumberToken(123.0, Buffer(text, 1, 1, 0)),
+        EOF(Buffer(text, 1, 5, 4))
+      )
+    }
 }
