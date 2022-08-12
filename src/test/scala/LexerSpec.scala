@@ -74,41 +74,45 @@ class LexerSpec extends AnyFlatSpec with should.Matchers {
     )
   }
 
-  // it should "return a string containing a quoted string" in {
-  //   Lexer
-  //     .tokenize(Source.fromString(""""foo\"bar\"baz""""))
-  //     .right
-  //     .get shouldBe List(
-  //     STRING("""foo\"bar\"baz""", Buffer(1, 1)),
-  //     EOF(Buffer(1, 16))
-  //   )
-  // }
+  it should "return a string containing a quoted string" in {
+    val text = """"foo\"bar\"baz""""
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      StringToken(text, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 16, 15))
+    )
+  }
 
-  // it should "return a string even if the quote is never closed" in {
-  //   Lexer.tokenize(Source.fromString(""""foo""")).toOption.get shouldBe List(
-  //     STRING("foo", Buffer(1, 1)),
-  //     EOF(Position(1, 5))
-  //   )
-  // }
+  it should "return a string even if the quote is never closed" in {
+    val text = """"foo"""
+    val result = """"foo""""
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      StringToken(result, Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 5, 4))
+    )
+  }
 
-  // it should "return a true value" in {
-  //   Lexer.tokenize(Source.fromString("true")).toOption.get shouldBe List(
-  //     BOOL_TRUE(Position(1, 1)),
-  //     EOF(Position(1, 5))
-  //   )
-  // }
+  it should "return a true value" in {
+    val text = "true"
+    Lexer.tokenize(text).toOption.get._1 shouldBe List(
+      BoolTrueToken(Buffer(text, 1, 1, 0)),
+      EOF(Buffer(text, 1, 5, 4))
+    )
+  }
 
-  // it should "return a false value" in {
-  //   Lexer.tokenize(Source.fromString("false")).toOption.get shouldBe List(
-  //     BOOL_FALSE(Position(1, 1)),
-  //     EOF(Position(1, 6))
-  //   )
-  // }
+  it should "return a false value" in {
+      val text = "false"
+    println(Lexer.tokenize(text))
+      Lexer.tokenize(text).toOption.get._1 shouldBe List(
+        BoolFalseToken(Buffer(text, 1, 1, 0)),
+        EOF(Buffer(text, 1, 6, 5))
+      )
+    }
+
 
   // // it should "return a whole number" in {
   // //         Lexer.tokenize(Source.fromString("123")).toOption.get shouldBe List(
-  // //           NUMBER(123.0, Position(1, 1)),
-  // //           EOF(Position(1, 4))
+  // //           NUMBER(123.0, Buffer(1, 1)),
+  // //           EOF(Buffer(1, 4))
   // //         )
   // //       }
 }
