@@ -61,7 +61,6 @@ object Lexer {
             println("ERROR: %s".format(error))
             Left(error)
           case Right(Tuple2(tokens, remaining)) if !atEof =>
-            println("RIGHT !isEOF: %s, %s".format(tokens, remaining))
             remaining.scanWhile(cond)(f, accum ::: tokens)
           case Right(Tuple2(tokens, remaining)) =>
             println("RIGHT")
@@ -106,7 +105,6 @@ object Lexer {
   }
 
   def tokenize(input: String): Result = {
-    println("TOKENIZE! %s".format(input))
     var buffer = Buffer(input)
     buffer
       .scan { b =>
@@ -121,7 +119,8 @@ object Lexer {
           case Some('"')  => tokenizeString(b)
           case Some('t')  => tokenizeBool(b)
           case Some('f')  => tokenizeBool(b)
-          case Some(c) if c.isDigit => tokenizeNumber(b)
+          case Some(' ')  => success(b.advance())
+          case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
           case c                    => Left("lexer fail: %s".format(c))
         }
       }
@@ -133,15 +132,20 @@ object Lexer {
   private def tokenizeNumber(startPos: Buffer): Result = {
     var accumulator = 0.0
     var done = false
+    var negative = false
     startPos.scanWhile(_ => !done) { buffer =>
       buffer.currentChar match {
+        case Some('-') =>
+          negative = true
+          Right(Tuple2(List.empty[Token], buffer.advance()))
         case Some(c) if (c.isDigit) =>
           accumulator *= 10
           accumulator += c.asDigit
           Right(Tuple2(List.empty[Token], buffer.advance()))
         case _ =>
           done = true
-          Right(Tuple2(List(NumberToken(accumulator, startPos)), buffer.advance()))
+          if (negative) accumulator *= -1
+          Right(Tuple2(List(NumberToken(accumulator, startPos)), buffer))
       }
     }
   }
@@ -150,9 +154,9 @@ object Lexer {
     startPos.currentChar
       .map { c =>
         if (c == 't') {
-          startPos.advance(True).flatMap(x => makeSpecific(x))
+          startPos.advance(True).flatMap(makeSpecific _)
         } else if (c == 'f') {
-          startPos.advance(False).flatMap(x => makeSpecific(x))
+          startPos.advance(False).flatMap(makeSpecific _)
         } else {
           Left("Not a bool")
         }
@@ -166,7 +170,7 @@ object Lexer {
     var done = false
     var terminated = false
     startPos
-      .advance() // pass the first double quote
+      .advance() // skip the first double quote
       .scanWhile(_ => !done) { buffer =>
         buffer.currentChar match {
           // Escape character
@@ -198,6 +202,7 @@ object Lexer {
         }
       }
       .map { case Tuple2(tokens, remaining) =>
+        // fix an unterminated string
         if (!terminated) str.append('"')
         Tuple2(
           tokens :+ StringToken(str.toString, startPos),
