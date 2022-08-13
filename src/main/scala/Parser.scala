@@ -5,7 +5,7 @@ case class JObject(properties: Map[String, JValue]) extends JValue
 case class JString(value: String) extends JValue
 case class JNumber(value: Double) extends JValue
 case class JBool(value: Boolean) extends JValue
-private case class JProperty(name: String) extends JValue
+private case class JProperty(obj: JObject, name: String) extends JValue
 
 object Parser {
   import Lexer._
@@ -18,43 +18,59 @@ object Parser {
   def parse(json: String): Result = Lexer.tokenize(json) match {
     case Left(error) => Left(error)
     case Right(Tuple2(tokens, remaining)) =>
-      val stack = tokens.foldLeft(List.empty[JValue]) { (stack, token) =>
+      val result = tokens.foldLeft[Either[String, List[JValue]]](
+        Right(List.empty[JValue])
+      )((stack, token) => combineTokens(stack, token))
+      result match {
+        case Right(result :: Nil) => Right(result)
+        case _ => Left("malformed JSON document: %s".format(result))
+      }
+  }
+
+  private def combineTokens(
+      stack: Either[String, List[JValue]],
+      token: Token
+  ) = {
+    stack match {
+      case Left(error) => Left(error)
+      case Right(stack) => {
         token match {
-          case CommaToken(_) => stack
+          case EOF(_)        => Right(stack)
+          case CommaToken(_) => Right(stack)
           case OpenSquareBracketToken(_) =>
             push(stack, JArray(List.empty[JValue]))
           case CloseSquareBracketToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
-                jValue(newStack, popped).toOption.get
-              case _ => throw new Exception("unexpected ]: %s".format(stack))
+                jValue(newStack, popped)
+              case _ => Left("unexpected ]: %s".format(stack))
             }
           case OpenCurlyBraceToken(_) =>
             push(stack, JObject(Map.empty[String, JValue]))
           case CloseCurlyBraceToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
-                jValue(newStack, popped).toOption.get
-              case _ => throw new Exception("unexpected ]: %s".format(stack))
+                jValue(newStack, popped)
+              case _ => Left("unexpected }: %s".format(stack))
             }
-          case ColonToken(_) => colon(stack).toOption.get
+          case ColonToken(_) => colon(stack)
           case StringToken(value: String, _) =>
-            string(stack, value).toOption.get
-          case BoolTrueToken(_)  => jValue(stack, JTrue).toOption.get
-          case BoolFalseToken(_) => jValue(stack, JFalse).toOption.get
+            string(stack, value)
+          case BoolTrueToken(_)  => jValue(stack, JTrue)
+          case BoolFalseToken(_) => jValue(stack, JFalse)
           case NumberToken(number: Double, _) =>
-            jValue(stack, JNumber(number)).toOption.get
-          case _ => stack
+            jValue(stack, JNumber(number))
+          case _ => Right(stack)
         }
       }
-      stack match {
-        case result :: Nil => Right(result)
-        case _ => Left("malformed JSON document: %s".format(stack))
-      }
+    }
   }
 
-  private def push(stack: List[JValue], jValue: JValue): List[JValue] =
-    jValue :: stack
+  private def push(stack: List[JValue], jValue: JValue): Either[String, List[JValue]] = jValue match {
+    case obj @ JObject(_) => Right(obj :: stack)
+    case array @ JArray(_) => Right(array :: stack)
+    case _ => Left("cannot push %s onto stack: %s".format(jValue, stack))
+  }
 
   private def pop(
       stack: List[JValue]
@@ -68,8 +84,8 @@ object Parser {
 
   private def colon(stack: List[JValue]): Either[String, List[JValue]] =
     stack match {
-      case JProperty(name) :: _ => Right(stack)
-      case _                    => Left("unexpected colon: %s".format(stack))
+      case JProperty(obj, name) :: _ => Right(stack)
+      case _ => Left("unexpected colon: %s".format(stack))
     }
 
   private def string(
@@ -78,9 +94,10 @@ object Parser {
   ): Either[String, List[JValue]] = stack match {
     case JArray(elements) :: tail =>
       Right(JArray(elements :+ JString(string)) :: tail)
-    case JObject(properties) :: tail => Right(JProperty(string) :: tail)
-    case JProperty(name) :: JObject(elements) :: tail =>
-      Right(JObject(elements + (name -> JString(string))) :: tail)
+    case (obj @ JObject(properties)) :: tail =>
+      Right(JProperty(obj, string) :: tail)
+    case JProperty(JObject(properties), name) :: tail =>
+      Right(JObject(properties + (name -> JString(string))) :: tail)
     case _ => Left("unexpected string: %s, stack: %s".format(string, stack))
   }
 
@@ -88,13 +105,11 @@ object Parser {
       stack: List[JValue],
       jValue: JValue
   ): Either[String, List[JValue]] = stack match {
-    case JProperty(name) :: JObject(properties) :: tail =>
+    case JProperty(JObject(properties), name) :: tail =>
       Right(JObject(properties + (name -> jValue)) :: tail)
     case JArray(elements) :: tail => Right(JArray(elements :+ jValue) :: tail)
     case _ :: _ =>
-      val msg = "unexpected property value: %s, stack: %s".format(jValue, stack)
-      println("ERROR MSG: %s".format(msg))
-      Left(msg)
+      Left("unexpected property value: %s, stack: %s".format(jValue, stack))
     case Nil => Right(List(jValue))
   }
 }
