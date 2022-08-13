@@ -54,9 +54,25 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     ))
   }
 
+  it should "return an object with a property with a missing colon" in {
+    Parser.parse("""{"name" "Tim"}""").value shouldBe (JObject(
+      Map("name" -> JString("Tim"))
+    ))
+  }
+
   it should "return an object with two properties" in {
     Parser.parse("""{"name": "Tim", "age": 50}""").value shouldBe (JObject(
       Map("name" -> JString("Tim"), "age" -> JNumber(50))
     ))
+  }
+
+  it should "return an object with two properties with missing colons and commas" in {
+    Parser.parse("""{"name" "Tim" "age" 50}""").value shouldBe (JObject(
+      Map("name" -> JString("Tim"), "age" -> JNumber(50))
+    ))
+  }
+
+  it should "return an error for an object with missing property value" in {
+    Parser.parse("""{"status": """).left.value should include ("never given a value")
   }
 }
