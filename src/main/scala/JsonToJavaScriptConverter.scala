@@ -1,7 +1,7 @@
-object JsonToJavascriptConverter {
+object JsonToJavascriptExtractor {
   type SourceCode = String
 
-  def convert(jsonText: String): Either[String, SourceCode] =
+  def extract(jsonText: String): Either[String, SourceCode] =
     Parser.parse(jsonText) match {
       case Right(json) =>
         Right(traverseJson(JsonPath(), json, new StringBuffer()).toString.trim)
