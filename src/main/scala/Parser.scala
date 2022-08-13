@@ -35,39 +35,40 @@ object Parser {
       case Left(error) => Left(error)
       case Right(stack) => {
         token match {
-          case EOF(_)        => Right(stack)
-          case CommaToken(_) => Right(stack)
           case OpenSquareBracketToken(_) =>
             push(stack, JArray(List.empty[JValue]))
+          case OpenCurlyBraceToken(_) =>
+            push(stack, JObject(Map.empty[String, JValue]))
           case CloseSquareBracketToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
                 jValue(newStack, popped)
               case _ => Left("unexpected ]: %s".format(stack))
             }
-          case OpenCurlyBraceToken(_) =>
-            push(stack, JObject(Map.empty[String, JValue]))
           case CloseCurlyBraceToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
                 jValue(newStack, popped)
               case _ => Left("unexpected }: %s".format(stack))
             }
-          case ColonToken(_) => colon(stack)
-          case StringToken(value: String, _) =>
-            string(stack, value)
-          case BoolTrueToken(_)  => jValue(stack, JTrue)
-          case BoolFalseToken(_) => jValue(stack, JFalse)
-          case NumberToken(number: Double, _) =>
-            jValue(stack, JNumber(number))
-          case _ => Right(stack)
+          case ColonToken(_)          => colon(stack)
+          case StringToken(value, _)  => string(stack, value)
+          case BoolTrueToken(_)       => jValue(stack, JTrue)
+          case BoolFalseToken(_)      => jValue(stack, JFalse)
+          case NumberToken(number, _) => jValue(stack, JNumber(number))
+          case EOF(_)                 => Right(stack)
+          case CommaToken(_)          => Right(stack)
+          case _                      => Right(stack)
         }
       }
     }
   }
 
-  private def push(stack: List[JValue], jValue: JValue): Either[String, List[JValue]] = jValue match {
-    case obj @ JObject(_) => Right(obj :: stack)
+  private def push(
+      stack: List[JValue],
+      jValue: JValue
+  ): Either[String, List[JValue]] = jValue match {
+    case obj @ JObject(_)  => Right(obj :: stack)
     case array @ JArray(_) => Right(array :: stack)
     case _ => Left("cannot push %s onto stack: %s".format(jValue, stack))
   }
