@@ -12,7 +12,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   private def tokenValues(text: String): List[String] =
     Lexer.tokenize(text).value._1.map(_.value)
 
-  "A lexer" should "return EOF for an empty stream" in {
+  "A lexer" should "return EOF for an empty string" in {
     Lexer.tokenize("").value._1 shouldBe List(
       EOF(Buffer("", 1, 1))
     )
@@ -47,7 +47,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return an empty string" in {
     val text = "\"\""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(text, Buffer(text, 1, 1, 0)),
+      StringToken("", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 3, 2))
     )
   }
@@ -55,7 +55,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return a non-empty string" in {
     val text = "\"test\""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(text, Buffer(text, 1, 1, 0)),
+      StringToken("test", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 7, 6))
     )
   }
@@ -63,7 +63,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return a non-empty string containing a space" in {
     val text = "\"test one\""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(text, Buffer(text, 1, 1, 0)),
+      StringToken("test one", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 11, 10))
     )
   }
@@ -71,7 +71,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return a string with a escaped double quote" in {
     val text = """"foo\"bar""""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(text, Buffer(text, 1, 1, 0)),
+      StringToken("foo\"bar", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 11, 10))
     )
   }
@@ -79,7 +79,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return a string containing a quoted string" in {
     val text = """"foo\"bar\"baz""""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(text, Buffer(text, 1, 1, 0)),
+      StringToken("foo\"bar\"baz", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 16, 15))
     )
   }
@@ -88,7 +88,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     val text = """"foo"""
     val result = """"foo""""
     Lexer.tokenize(text).value._1 shouldBe List(
-      StringToken(result, Buffer(text, 1, 1, 0)),
+      StringToken("foo", Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 5, 4))
     )
   }
@@ -175,7 +175,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
         ",",
         "false",
         ",",
-        """"Tim"""",
+        "Tim",
         "]",
         "<EOF>"
       )
@@ -216,7 +216,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     tokenValues(text) should be(
       List(
         "{",
-        """"happy"""",
+        "happy",
         ":",
         "true",
         "}",
@@ -230,7 +230,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     tokenValues(text) should be(
       List(
         "{",
-        """"happy"""",
+        "happy",
         ":",
         "{",
         "}",
@@ -250,7 +250,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     tokenValues(text) should be(
       List(
         "{",
-        """"happy"""",
+        "happy",
         ":",
         "{",
         "}",
@@ -266,7 +266,7 @@ line2"
   """
     tokenValues(text) should be(
       List(
-        "\"line1\nline2\"",
+        "line1\nline2",
         "<EOF>"
       )
     )

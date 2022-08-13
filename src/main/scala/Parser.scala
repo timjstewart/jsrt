@@ -19,7 +19,6 @@ object Parser {
     case Left(error) => Left(error)
     case Right(Tuple2(tokens, remaining)) =>
       val stack = tokens.foldLeft(List.empty[JValue]) { (stack, token) =>
-        println("TOKEN: %s".format(token))
         token match {
           case CommaToken(_) => stack
           case OpenSquareBracketToken(_) =>

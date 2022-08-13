@@ -163,7 +163,7 @@ object Lexer {
   }
 
   private def tokenizeString(startPos: Buffer): Result = {
-    val str = new StringBuffer("\"")
+    val str = new StringBuffer()
     var escaped = false
     var done = false
     var terminated = false
@@ -174,7 +174,6 @@ object Lexer {
           // Escape character
           case Some('\\') =>
             escaped = true
-            str.append('\\')
             success(buffer.advance())
           // Escaped double quote
           case Some('"') if escaped =>
@@ -183,7 +182,6 @@ object Lexer {
             success(buffer.advance())
           // Unescaped double quote
           case Some('"') =>
-            str.append('"')
             done = true
             terminated = true
             success(buffer.advance())
@@ -195,13 +193,10 @@ object Lexer {
           case None =>
             done = true
             terminated = true
-            str.append('"')
             success(buffer.advance())
         }
       }
       .map { case Tuple2(tokens, remaining) =>
-        // fix an unterminated string
-        if (!terminated) str.append('"')
         Tuple2(
           tokens :+ StringToken(str.toString, startPos),
           remaining

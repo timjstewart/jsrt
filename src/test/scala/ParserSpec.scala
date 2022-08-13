@@ -16,6 +16,20 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     Parser.parse("[1]").value shouldBe (JArray(List(JNumber(1))))
   }
 
+  it should "return a two element array" in {
+    Parser.parse("[1, 0]").value shouldBe (JArray(List(JNumber(1), JNumber(0))))
+  }
+
+  it should "return a two element number array when the comma is missing" in {
+    Parser.parse("[1 0]").value shouldBe (JArray(List(JNumber(1), JNumber(0))))
+  }
+
+  it should "return a two element string array when the comma is missing" in {
+    Parser.parse("""["Tim" "Stewart"]""").value shouldBe (JArray(
+      List(JString("Tim"), JString("Stewart"))
+    ))
+  }
+
   it should "return an empty object" in {
     Parser.parse("{}").value shouldBe (JObject(Map()))
   }
