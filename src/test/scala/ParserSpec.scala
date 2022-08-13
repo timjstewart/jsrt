@@ -200,4 +200,8 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
       JArray(JNull, JNull)
     )
   }
+
+  it should "return an error when parsing an extra colon" in {
+    Parser.parse(""""{ "prop1" : "value" : "prop2" }""").left.value should include("fail")
+  }
 }
