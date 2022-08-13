@@ -43,7 +43,13 @@ object Lexer {
         }
         Right(Tuple2(List(GenericToken(by, this)), res))
       } else {
-        Left("expected %s in %s".format(by, this))
+        Left(
+          "lexer: expected '%s' but found '%s' in %s".format(
+            by,
+            text.substring(index),
+            this
+          )
+        )
       }
     }
 
@@ -60,7 +66,7 @@ object Lexer {
         f(this) match {
           case Left(error) =>
             println("ERROR: %s".format(error))
-            Left(error)
+            Left("lexer: %s".format(error))
           case Right(Tuple2(tokens, remaining)) if !atEof =>
             remaining.scanWhile(cond)(f, accum ::: tokens)
           case Right(Tuple2(tokens, remaining)) =>
@@ -98,8 +104,8 @@ object Lexer {
     case Tuple2(GenericToken(`False`, pos) :: Nil, buf) =>
       Right(Tuple2(List(BoolFalseToken(pos)), buf))
     case Tuple2(GenericToken(`Null`, pos) :: Nil, buf) =>
-          Right(Tuple2(List(NullToken(pos)), buf))
-    case _ => Left("Could not make more specific")
+      Right(Tuple2(List(NullToken(pos)), buf))
+    case _ => Left("lexer: Could not make more specific")
   }
 
   def success(buffer: Buffer, tokens: Token*): Result = {
@@ -124,7 +130,7 @@ object Lexer {
           case Some('n')  => tokenizeNull(b)
           case Some(c) if c.isWhitespace        => success(b.advance())
           case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
-          case c => Left("lexer fail: %s".format(c))
+          case c => Left("lexer: fail: %s".format(c))
         }
       }
       .map { case Tuple2(tokens, remaining) =>
@@ -161,23 +167,23 @@ object Lexer {
         } else if (c == 'f') {
           startPos.advance(False).flatMap(makeSpecific _)
         } else {
-          Left("Not a bool")
+          Left("lexer: Not a bool")
         }
       }
-      .getOrElse(Left("Could not tokenize bool"))
+      .getOrElse(Left("lexer: Could not tokenize bool"))
   }
 
   private def tokenizeNull(startPos: Buffer): Result = {
-      startPos.currentChar
-        .map { c =>
-          if (c == 'n') {
-            startPos.advance(Null).flatMap(makeSpecific _)
-          } else {
-            Left("Not a null")
-          }
+    startPos.currentChar
+      .map { c =>
+        if (c == 'n') {
+          startPos.advance(Null).flatMap(makeSpecific _)
+        } else {
+          Left("lexer: Not a null")
         }
-        .getOrElse(Left("Could not tokenize null"))
-    }
+      }
+      .getOrElse(Left("lexer: Could not tokenize null"))
+  }
 
   private def tokenizeString(startPos: Buffer): Result = {
     val str = new StringBuffer()

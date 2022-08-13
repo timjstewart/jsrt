@@ -144,12 +144,12 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
 
   it should "fail if true is misspelled" in {
     val text = "tru"
-    Lexer.tokenize(text).left.value should startWith("expected true")
+    Lexer.tokenize(text).left.value should include("expected 'true'")
   }
 
   it should "fail if false is misspelled" in {
     val text = "fasle"
-    Lexer.tokenize(text).left.value should startWith("expected false")
+    Lexer.tokenize(text).left.value should include("expected 'false'")
   }
 
   it should "return a negative whole number" in {

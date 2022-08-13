@@ -37,7 +37,7 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   }
 
   it should "return an empty object" in {
-    Parser.parse("{}").value shouldBe (JObject(Map()))
+    Parser.parse("{}").value shouldBe (JObject(Nil))
   }
 
   it should "return nested array" in {
@@ -45,30 +45,30 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   }
 
   it should "return object nested in an array" in {
-    Parser.parse("[{}]").value shouldBe (JArray(List(JObject(Map()))))
+    Parser.parse("[{}]").value shouldBe (JArray(List(JObject(Nil))))
   }
 
   it should "return an object with a property" in {
     Parser.parse("""{"name": "Tim"}""").value shouldBe (JObject(
-      Map("name" -> JString("Tim"))
+      List("name" -> JString("Tim"))
     ))
   }
 
   it should "return an object with a property with a missing colon" in {
     Parser.parse("""{"name" "Tim"}""").value shouldBe (JObject(
-      Map("name" -> JString("Tim"))
+      List("name" -> JString("Tim"))
     ))
   }
 
   it should "return an object with two properties" in {
     Parser.parse("""{"name": "Tim", "age": 50}""").value shouldBe (JObject(
-      Map("name" -> JString("Tim"), "age" -> JNumber(50))
+      List("name" -> JString("Tim"), "age" -> JNumber(50))
     ))
   }
 
   it should "return an object with two properties with missing colons and commas" in {
     Parser.parse("""{"name" "Tim" "age" 50}""").value shouldBe (JObject(
-      Map("name" -> JString("Tim"), "age" -> JNumber(50))
+      List("name" -> JString("Tim"), "age" -> JNumber(50))
     ))
   }
 
@@ -80,13 +80,13 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
 
   it should "return an object for an object with missing closing curly brace" in {
     Parser.parse("""{"status": true""").value shouldBe (JObject(
-      Map("status" -> JBool(true))
+      List("status" -> JBool(true))
     ))
   }
 
   it should "return a list of objects when the comma is missing" in {
     Parser.parse("""[{}{}]""").value shouldBe (JArray(
-      List(JObject(Map.empty), JObject(Map.empty))
+      List(JObject(Nil), JObject(Nil))
     ))
   }
 
@@ -99,6 +99,63 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   it should "return a list of nulls when the comma is missing" in {
     Parser.parse("""[null null]""").value shouldBe (
       JArray(List(JNull, JNull))
+    )
+  }
+
+  it should "parse a complex object" in {
+    val text = """
+[
+  {
+    "name": {
+        "first": "Fred",
+        "last": "Flintstone"
+    },
+    "hobbies": [],
+    "age": 40,
+    "id": null
+  },
+  {
+      "name": {
+          "first": "Wilma",
+          "last": "Flintstone"
+      },
+      "hobbies": ["reading"],
+      "age": 35,
+      "id": "123456"
+  }
+]
+"""
+    Parser.parse(text).value shouldBe (
+      JArray(
+        List(
+          JObject(
+            List(
+              "name" -> JObject(
+                List(
+                  "first" -> JString("Fred"),
+                  "last" -> JString("Flintstone")
+                )
+              ),
+              "hobbies" -> JArray(Nil),
+              "age" -> JNumber(40),
+              "id" -> JNull
+            )
+          ),
+          JObject(
+            List(
+              "name" -> JObject(
+                List(
+                  "first" -> JString("Wilma"),
+                  "last" -> JString("Flintstone")
+                )
+              ),
+              "hobbies" -> JArray(List(JString("reading"))),
+              "age" -> JNumber(35),
+              "id" -> JString("123456")
+            )
+          )
+        )
+      )
     )
   }
 }

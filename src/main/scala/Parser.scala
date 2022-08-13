@@ -1,7 +1,7 @@
 sealed abstract class JValue
 case object JNull extends JValue
 case class JArray(elements: List[JValue]) extends JValue
-case class JObject(properties: Map[String, JValue]) extends JValue
+case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue
 case class JString(value: String) extends JValue
 case class JNumber(value: Double) extends JValue
 case class JBool(value: Boolean) extends JValue
@@ -44,7 +44,7 @@ object Parser {
           case OpenSquareBracketToken(_) =>
             push(stack, JArray(List.empty[JValue]))
           case OpenCurlyBraceToken(_) =>
-            push(stack, JObject(Map.empty[String, JValue]))
+            push(stack, JObject(Nil))
           case CloseSquareBracketToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
@@ -105,7 +105,7 @@ object Parser {
     case (obj @ JObject(properties)) :: tail =>
       Right(JProperty(obj, string) :: tail)
     case JProperty(JObject(properties), name) :: tail =>
-      Right(JObject(properties + (name -> JString(string))) :: tail)
+      Right(JObject(properties :+  (name -> JString(string))) :: tail)
     case _ => Left("unexpected string: %s, stack: %s".format(string, stack))
   }
 
@@ -114,7 +114,7 @@ object Parser {
       jValue: JValue
   ): Either[String, List[JValue]] = stack match {
     case JProperty(JObject(properties), name) :: tail =>
-      Right(JObject(properties + (name -> jValue)) :: tail)
+      Right(JObject(properties :+ (name -> jValue)) :: tail)
     case JArray(elements) :: tail => Right(JArray(elements :+ jValue) :: tail)
     case _ :: _ =>
       Left("unexpected property value: %s, stack: %s".format(jValue, stack))
