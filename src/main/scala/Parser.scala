@@ -7,6 +7,16 @@ case class JNumber(value: Double) extends JValue
 case class JBool(value: Boolean) extends JValue
 private case class JProperty(obj: JObject, name: String) extends JValue
 
+object JArray {
+  def apply(jValues: JValue*): JArray = JArray(List(jValues: _*))
+}
+
+object JObject {
+  def apply(properties: Tuple2[String, JValue]*): JObject = JObject(
+    List(properties: _*)
+  )
+}
+
 object Parser {
   import Lexer._
 
@@ -16,7 +26,7 @@ object Parser {
   type Result = Either[String, JValue]
 
   def parse(json: String): Result = Lexer.tokenize(json) match {
-    case Left(error) => Left(error)
+    case Left(error)                      => Left(error)
     case Right(Tuple2(tokens, remaining)) =>
       //println("TOKENS: %s => %s".format(json, tokens))
       val result = tokens.foldLeft[Either[String, List[JValue]]](
@@ -42,9 +52,9 @@ object Parser {
       case Right(stack) => {
         token match {
           case OpenSquareBracketToken(_) =>
-            push(stack, JArray(List.empty[JValue]))
+            push(stack, JArray())
           case OpenCurlyBraceToken(_) =>
-            push(stack, JObject(Nil))
+            push(stack, JObject())
           case CloseSquareBracketToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
@@ -105,7 +115,7 @@ object Parser {
     case (obj @ JObject(properties)) :: tail =>
       Right(JProperty(obj, string) :: tail)
     case JProperty(JObject(properties), name) :: tail =>
-      Right(JObject(properties :+  (name -> JString(string))) :: tail)
+      Right(JObject(properties :+ (name -> JString(string))) :: tail)
     case _ => Left("unexpected string: %s, stack: %s".format(string, stack))
   }
 
