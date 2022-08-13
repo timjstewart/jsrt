@@ -271,4 +271,13 @@ line2"
       )
     )
   }
+
+  "A lexer" should "return null" in {
+    val text = "null"
+      Lexer.tokenize(text).value._1 shouldBe List(
+        NullToken(Buffer(text, 1, 1, 0)),
+        EOF(Buffer(text, 1, 5, 4))
+      )
+    }
+
 }

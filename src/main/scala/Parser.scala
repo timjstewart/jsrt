@@ -61,6 +61,7 @@ object Parser {
           case StringToken(value, _)  => string(stack, value)
           case BoolTrueToken(_)       => jValue(stack, JTrue)
           case BoolFalseToken(_)      => jValue(stack, JFalse)
+          case NullToken(_)           => jValue(stack, JNull)
           case NumberToken(number, _) => jValue(stack, JNumber(number))
           case EOF(_)                 => Right(stack)
           case CommaToken(_)          => Right(stack)

@@ -73,6 +73,32 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   }
 
   it should "return an error for an object with missing property value" in {
-    Parser.parse("""{"status": """).left.value should include ("never given a value")
+    Parser.parse("""{"status": """).left.value should include(
+      "never given a value"
+    )
+  }
+
+  it should "return an object for an object with missing closing curly brace" in {
+    Parser.parse("""{"status": true""").value shouldBe (JObject(
+      Map("status" -> JBool(true))
+    ))
+  }
+
+  it should "return a list of objects when the comma is missing" in {
+    Parser.parse("""[{}{}]""").value shouldBe (JArray(
+      List(JObject(Map.empty), JObject(Map.empty))
+    ))
+  }
+
+  it should "return a list of arrays when the comma is missing" in {
+    Parser.parse("""[[][]]""").value shouldBe (JArray(
+      List(JArray(Nil), JArray(Nil))
+    ))
+  }
+
+  it should "return a list of nulls when the comma is missing" in {
+    Parser.parse("""[null null]""").value shouldBe (
+      JArray(List(JNull, JNull))
+    )
   }
 }

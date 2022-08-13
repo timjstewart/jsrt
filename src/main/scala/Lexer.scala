@@ -4,6 +4,7 @@ object Lexer {
 
   val True = "true"
   val False = "false"
+  val Null = "null"
 
   type Result = Either[String, Tuple2[List[Token], Buffer]]
 
@@ -82,6 +83,7 @@ object Lexer {
   case class StringToken(string: String, pos: Buffer) extends Token(string, pos)
   case class BoolTrueToken(pos: Buffer) extends Token(True, pos)
   case class BoolFalseToken(pos: Buffer) extends Token(False, pos)
+  case class NullToken(pos: Buffer) extends Token(Null, pos)
   case class NumberToken(number: Double, pos: Buffer)
       extends Token(number.toString, pos)
   case class GenericToken(text: String, pos: Buffer) extends Token(text, pos)
@@ -95,6 +97,8 @@ object Lexer {
       Right(Tuple2(List(BoolTrueToken(pos)), buf))
     case Tuple2(GenericToken(`False`, pos) :: Nil, buf) =>
       Right(Tuple2(List(BoolFalseToken(pos)), buf))
+    case Tuple2(GenericToken(`Null`, pos) :: Nil, buf) =>
+          Right(Tuple2(List(NullToken(pos)), buf))
     case _ => Left("Could not make more specific")
   }
 
@@ -117,6 +121,7 @@ object Lexer {
           case Some('"')  => tokenizeString(b)
           case Some('t')  => tokenizeBool(b)
           case Some('f')  => tokenizeBool(b)
+          case Some('n')  => tokenizeNull(b)
           case Some(c) if c.isWhitespace        => success(b.advance())
           case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
           case c => Left("lexer fail: %s".format(c))
@@ -161,6 +166,18 @@ object Lexer {
       }
       .getOrElse(Left("Could not tokenize bool"))
   }
+
+  private def tokenizeNull(startPos: Buffer): Result = {
+      startPos.currentChar
+        .map { c =>
+          if (c == 'n') {
+            startPos.advance(Null).flatMap(makeSpecific _)
+          } else {
+            Left("Not a null")
+          }
+        }
+        .getOrElse(Left("Could not tokenize null"))
+    }
 
   private def tokenizeString(startPos: Buffer): Result = {
     val str = new StringBuffer()
