@@ -27,7 +27,7 @@ object Parser {
           case CloseSquareBracketToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
-                setProperty(newStack, popped).toOption.get
+                jValue(newStack, popped).toOption.get
               case _ => throw new Exception("unexpected ]: %s".format(stack))
             }
           case OpenCurlyBraceToken(_) =>
@@ -35,23 +35,16 @@ object Parser {
           case CloseCurlyBraceToken(_) =>
             pop(stack) match {
               case Right(Tuple2(popped, newStack)) =>
-                println(
-                  "Close }: %s, %s, %s".format(
-                    popped,
-                    newStack,
-                    setProperty(newStack, popped)
-                  )
-                )
-                setProperty(newStack, popped).toOption.get
+                jValue(newStack, popped).toOption.get
               case _ => throw new Exception("unexpected ]: %s".format(stack))
             }
           case ColonToken(_) => colon(stack).toOption.get
           case StringToken(value: String, _) =>
             string(stack, value).toOption.get
-          case BoolTrueToken(_)  => setProperty(stack, JTrue).toOption.get
-          case BoolFalseToken(_) => setProperty(stack, JFalse).toOption.get
+          case BoolTrueToken(_)  => jValue(stack, JTrue).toOption.get
+          case BoolFalseToken(_) => jValue(stack, JFalse).toOption.get
           case NumberToken(number: Double, _) =>
-            setProperty(stack, JNumber(number)).toOption.get
+            jValue(stack, JNumber(number)).toOption.get
           case _ => stack
         }
       }
@@ -92,14 +85,17 @@ object Parser {
     case _ => Left("unexpected string: %s, stack: %s".format(string, stack))
   }
 
-  private def setProperty(
+  private def jValue(
       stack: List[JValue],
       jValue: JValue
   ): Either[String, List[JValue]] = stack match {
     case JProperty(name) :: JObject(properties) :: tail =>
       Right(JObject(properties + (name -> jValue)) :: tail)
+    case JArray(elements) :: tail => Right(JArray(elements :+ jValue) :: tail)
     case _ :: _ =>
-      Left("unexpected property value: %s, stack: %s".format(jValue, stack))
+      val msg = "unexpected property value: %s, stack: %s".format(jValue, stack)
+      println("ERROR MSG: %s".format(msg))
+      Left(msg)
     case Nil => Right(List(jValue))
   }
 }
