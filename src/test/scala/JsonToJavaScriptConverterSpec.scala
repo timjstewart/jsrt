@@ -27,7 +27,6 @@ class JsonToJavascriptExtractorSpec
   }
 ]
 """
-    print(JsonToJavascriptExtractor.extract(text).value)
     JsonToJavascriptExtractor.extract(text).value shouldBe ("""
 /** ref([0].top[0].jsCode) */
 function func() {
@@ -39,5 +38,30 @@ function func() {
     return false;
 }
 """.trim)
+  }
+
+  "A converter" should "extract code with indentation" in {
+    val text = """
+[
+  {
+    "jsCode": "
+_.forEach(names, function(name) {
+    if (name === null) {
+        console.log('null name');
+    }
+});"
+  ]
+}
+    """
+    JsonToJavascriptExtractor.extract(text).value shouldBe ("""
+/** ref([0].jsCode) */
+function func() {
+    _.forEach(names, function(name) {
+        if (name === null) {
+            console.log('null name');
+        }
+    });
+}
+    """.trim)
   }
 }

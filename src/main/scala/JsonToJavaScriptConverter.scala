@@ -26,12 +26,20 @@ object JsonToJavascriptExtractor {
         output.append("""
 /** ref(%s) */
 function func() {
-    %s
+%s
 }
-""".format(path, value))
+""".format(path, indent(value)))
       case _ => ()
     }
     output
+  }
+
+  private def indent(text: String): String = {
+    return text
+      .split("\n")
+      .filter(_.length() > 0)
+      .map(line => "    %s".format(line))
+      .mkString("\n")
   }
 
   private def shouldExport(path: JsonPath): Boolean = path match {
