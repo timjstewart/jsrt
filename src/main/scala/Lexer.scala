@@ -65,7 +65,6 @@ object Lexer {
       } else {
         f(this) match {
           case Left(error) =>
-            println("ERROR: %s".format(error))
             Left("lexer: %s".format(error))
           case Right(Tuple2(tokens, remaining)) if !atEof =>
             remaining.scanWhile(cond)(f, accum ::: tokens)

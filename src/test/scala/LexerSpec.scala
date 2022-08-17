@@ -103,7 +103,6 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
 
   it should "return a false value" in {
     val text = "false"
-    println(Lexer.tokenize(text))
     Lexer.tokenize(text).value._1 shouldBe List(
       BoolFalseToken(Buffer(text, 1, 1, 0)),
       EOF(Buffer(text, 1, 6, 5))

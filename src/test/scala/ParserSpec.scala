@@ -12,7 +12,6 @@ class ParserSpec extends AnyFlatSpec with should.Matchers with EitherValues {
   }
 
   it should "return a single element array" in {
-    println("TEST: %s".format(Parser.parse("[1]")))
     Parser.parse("[1]").value shouldBe (JArray(JNumber(1)))
   }
 

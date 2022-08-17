@@ -28,11 +28,9 @@ object Parser {
   def parse(json: String): Result = Lexer.tokenize(json) match {
     case Left(error)                      => Left(error)
     case Right(Tuple2(tokens, remaining)) =>
-      //println("TOKENS: %s => %s".format(json, tokens))
       val result = tokens.foldLeft[Either[String, List[JValue]]](
         Right(List.empty[JValue])
       )((stack, token) => combineTokens(stack, token))
-      //print("RESULT: %s".format(result))
       result match {
         case Right(JProperty(obj, name) :: Nil) =>
           Left(

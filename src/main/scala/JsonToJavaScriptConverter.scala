@@ -1,4 +1,7 @@
 object JsonToJavascriptExtractor {
+
+  import json.path._
+
   type SourceCode = String
 
   def extract(jsonText: String): Either[String, SourceCode] =
