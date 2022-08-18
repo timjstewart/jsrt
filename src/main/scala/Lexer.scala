@@ -2,6 +2,7 @@ object Lexer {
 
   import scala.io.Source
 
+  // JSON reserved words
   val True = "true"
   val False = "false"
   val Null = "null"

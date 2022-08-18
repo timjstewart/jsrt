@@ -6,10 +6,13 @@ object Main {
   def main(args: Array[String]): Unit =
     args.foreach { arg =>
       val text = Source.fromFile(arg).getLines().mkString("\n")
+
+      // TODO: read this from config
       var patterns = Map.empty[Pattern, String]
       Pattern.parse("[].top.blocks[].name").foreach {
         pattern => patterns = patterns + (pattern -> "name")
       }
+
       JsonToJavascriptExtractor.extract(text, patterns) match {
         case Right(javaScript) => write(javaScript, arg + ".js")
         case Left(error)       => Left(error)

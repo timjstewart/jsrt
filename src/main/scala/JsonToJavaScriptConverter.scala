@@ -85,6 +85,7 @@ function %s() {
   }
 
   private def leftJustify(text: String): String = {
+    // compute how many spaces the text can be moved to the left
     val numSpaces = text
       .split('\n')
       .flatMap(s =>
@@ -94,12 +95,14 @@ function %s() {
         }
       ).min
 
+    // move the text over to the left
     text
       .split('\n')
       .map(x =>
         if (x.length > numSpaces) {
           x.substring(numSpaces)
         } else {
+          // TODO: Could this just be a blank line?
           x
         }
       )
