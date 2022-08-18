@@ -42,38 +42,44 @@ package path {
     object Pattern {
       def apply(steps: Step*): Pattern = Pattern(List(steps: _*))
 
-      // TODO: make this less ugly
       def parse(patternText: String): Either[String, Pattern] = {
-        Right(Pattern(patternText.split('.').toList flatMap { segment =>
-          val index = segment.indexOf('[')
-          if (index == -1) {
-            List(if (segment == "*") {
-              PropertyWildCard
+        Right(Pattern(toSegments(patternText).flatMap(parseSegment)))
+      }
+
+      private def toSegments(patternText: String): List[String] =
+        patternText.split('.').toList
+
+      private def parseProperty(propertyText: String): List[Step] =
+        List(if (propertyText == "*") {
+          PropertyWildCard
+        } else {
+          Property(propertyText)
+        })
+
+      private def parseArrayPatterns(arrayText: String): List[Step] =
+        arrayText
+          .split(']')
+          .toList
+          .map { x =>
+            if (x == "[") {
+              IndexWildCard
             } else {
-              Property(segment)
-            })
-          } else {
-            val indexPatterns = segment
-              .substring(index)
-              .split(']')
-              .toList
-              .map { x =>
-                if (x == "[") {
-                  IndexWildCard
-                } else {
-                  Index(x.substring(1).toInt)
-                }
-              }
-            val head = if (segment.substring(0, index) == "*") {
-              PropertyWildCard
-            } else {
-              Property(segment.substring(0, index))
+              Index(x.substring(1).toInt)
             }
-            head :: indexPatterns
           }
-        }))
+
+      private def parseSegment(segment: String): List[Step] = {
+        val index = segment.indexOf('[')
+        if (index == -1) {
+          parseProperty(segment)
+        } else if (index == 0) {
+          parseArrayPatterns(segment)
+        } else {
+          parseProperty(segment.substring(0, index)) ::: parseArrayPatterns(
+            segment.substring(index)
+          )
+        }
       }
     }
   }
-
 }

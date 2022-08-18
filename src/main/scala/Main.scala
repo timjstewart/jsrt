@@ -1,10 +1,16 @@
 import scala.io.Source
+import json.path.pattern.Pattern
+import json.path.pattern.Property
 
 object Main {
   def main(args: Array[String]): Unit =
     args.foreach { arg =>
       val text = Source.fromFile(arg).getLines().mkString("\n")
-      JsonToJavascriptExtractor.extract(text) match {
+      var patterns = Map.empty[Pattern, String]
+      Pattern.parse("[].top.blocks[].name").foreach {
+        pattern => patterns = patterns + (pattern -> "name")
+      }
+      JsonToJavascriptExtractor.extract(text, patterns) match {
         case Right(javaScript) => write(javaScript, arg + ".js")
         case Left(error)       => Left(error)
       }
@@ -18,3 +24,4 @@ object Main {
     finally writer.close()
   }
 }
+

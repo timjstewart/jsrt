@@ -80,7 +80,80 @@ class JsonPatternSpec
   }
 
   "A pattern with a property wild card" should "should match a property path" in {
-      val path = JsonPath(ArrayIndex(3), PropertyName("prop"))
-      Pattern.parse("*[]").value.matches(path) should be(true)
-    }
+    val path = JsonPath(ArrayIndex(3), PropertyName("prop"))
+    Pattern.parse("*[]").value.matches(path) should be(true)
+  }
+
+  "A pattern with an index wild card then some properties" should "should match" in {
+    val path = JsonPath(
+      PropertyName("name"),
+      PropertyName("blocks"),
+      PropertyName("top"),
+      ArrayIndex(0)
+    )
+    Pattern.parse("[].top.blocks.name").value.matches(path) should be(true)
+  }
+
+  "A pattern with an index then some properties" should "should match" in {
+    val path = JsonPath(
+      PropertyName("name"),
+      PropertyName("blocks"),
+      PropertyName("top"),
+      ArrayIndex(0)
+    )
+    Pattern.parse("[0].top.blocks.name").value.matches(path) should be(true)
+  }
+
+  "A pattern with an index then some properties" should "parses correctly" in {
+    Pattern.parse("[0].top.blocks.name").value should be(
+      Pattern(Index(0), Property("top"), Property("blocks"), Property("name"))
+    )
+  }
+
+  "A pattern with two indexes then some properties" should "parses correctly" in {
+    Pattern.parse("[0][1].top.blocks.name").value should be(
+      Pattern(
+        Index(0),
+        Index(1),
+        Property("top"),
+        Property("blocks"),
+        Property("name")
+      )
+    )
+  }
+
+  "A pattern with an index wildcard then an index then some properties" should "parses correctly" in {
+    Pattern.parse("[][1].top.blocks.name").value should be(
+      Pattern(
+        IndexWildCard,
+        Index(1),
+        Property("top"),
+        Property("blocks"),
+        Property("name")
+      )
+    )
+  }
+
+  "A pattern with an index then an index wildcard then some properties" should "parses correctly" in {
+    Pattern.parse("[1][].top.blocks.name").value should be(
+      Pattern(
+        Index(1),
+        IndexWildCard,
+        Property("top"),
+        Property("blocks"),
+        Property("name")
+      )
+    )
+  }
+
+  "A pattern with an index wild card then some properties" should "parses correctly" in {
+    Pattern.parse("[].top.blocks.name").value should be(
+      Pattern(
+        IndexWildCard,
+        Property("top"),
+        Property("blocks"),
+        Property("name")
+      )
+    )
+  }
 }

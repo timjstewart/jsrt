@@ -21,8 +21,7 @@
                     _.forEach(['one', 'two', 'three'], function(number) {
                         console.alert(number);
                     });
-                    console.alert('Hi three', x);
-                    "
+                    console.alert('Hi three', x);"
                 },
                 {
                     "name": "alert four",
