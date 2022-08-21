@@ -28,12 +28,12 @@ class JsonToJavascriptExtractorSpec
 ]
 """
     JsonToJavascriptExtractor.extract(text).value shouldBe ("""
-/** ref([0].top[0].jsCode) */
+/** path([0].top[0].jsCode) */
 function func() {
     return true;
 }
 
-/** ref([0].top[1].jsCode) */
+/** path([0].top[1].jsCode) */
 function func() {
     return false;
 }
@@ -54,7 +54,7 @@ _.forEach(names, function(name) {
 }
     """
     JsonToJavascriptExtractor.extract(text).value shouldBe ("""
-/** ref([0].jsCode) */
+/** path([0].jsCode) */
 function func() {
     _.forEach(names, function(name) {
         if (name === null) {

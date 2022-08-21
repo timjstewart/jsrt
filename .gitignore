@@ -5,3 +5,4 @@
 /target/
 
 /.scalafmt.conf
+/src/test/json/example.json.js

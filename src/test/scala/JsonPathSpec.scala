@@ -59,6 +59,26 @@ class JsonPatternSpec
     )
   }
 
+  "A single property path" should "be able to be parsed" in {
+    JsonPath.parse("code").value.toString should be("code")
+  }
+
+  "A two property path" should "be able to be parsed" in {
+    JsonPath.parse("code.text").value.toString should be("code.text")
+  }
+
+  "A two property path each with indexes" should "be able to be parsed" in {
+    JsonPath.parse("code[0].text[1]").value.toString should be(
+      "code[0].text[1]"
+    )
+  }
+
+  "A two property path with indexes" should "be able to be parsed" in {
+      JsonPath.parse("code.text[0][1]").value.toString should be(
+        "code.text[0][1]"
+      )
+    }
+
   "A pattern" should "match a property path" in {
     val path = JsonPath(PropertyName("prop"))
     Pattern.parse("prop").value.matches(path) should be(true)

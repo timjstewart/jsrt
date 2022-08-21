@@ -72,7 +72,7 @@ object JsonToJavascriptExtractor {
       collected: scala.collection.mutable.Map[String, String]
   ): Unit = {
     output.append("""
-/** ref(%s) */
+/** path(%s) */
 function %s() {
 %s
 }
