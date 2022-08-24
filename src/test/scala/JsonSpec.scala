@@ -114,8 +114,7 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
 """.trim)
   }
 
-  "An Array of objects" should "be pretty printed correctly" in {
-    println(JArray(JObject(), JObject()).prettyPrint)
+  "An Array of empty objects" should "be pretty printed correctly" in {
       JArray(JObject(), JObject()).prettyPrint should be("""
 [
   {},
@@ -123,4 +122,24 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
 ]
 """.trim)
     }
-}
+
+  "An Array of non-empty objects" should "be pretty printed correctly" in {
+      JArray(
+                JObject(
+                  "name" -> JString("Fred")
+                ),
+                JObject(
+                  "name" -> JString("Wilma")
+                )
+              ).prettyPrint should be("""
+[
+  {
+    "name": "Fred"
+  },
+  {
+    "name": "Wilma"
+  }
+]
+""".trim)
+      }
+  }
