@@ -23,15 +23,19 @@ case object JNull extends JValue {
     sb.append("null")
   }
 }
+
 case class JArray(elements: List[JValue]) extends JValue {
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("[")
     if (elements.isEmpty) {
       sb.append("]")
     } else {
-      sb.append("\n")
-      elements.foreach(x => x.prettyPrintInternal(sb, level + 1))
-      indent(sb, level)
+      //sb.append("\n")
+      elements.zipWithIndex.foreach{x =>
+        if (x._2 > 0)
+          sb.append(", ")
+        x._1.prettyPrintInternal(sb, level + 1)}
+      //indent(sb, level)
       sb.append("]")
     }
   }
@@ -44,11 +48,17 @@ case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue{
           sb.append("}")
         } else {
           sb.append("\n")
-          properties.foreach{prop =>
+
+          properties.zipWithIndex.foreach{x =>
+            if (x._2 > 0) {
+              sb.append(",\n")
+            }
             indent(sb, level + 1)
-            sb.append(""""%s":""".format(prop._1))
-            prop._2.prettyPrintInternal(sb, level + 1)
+            sb.append(""""%s": """.format(x._1._1))
+            x._1._2.prettyPrintInternal(sb, level + 1)
           }
+          sb.append("\n")
+          indent(sb, level)
           sb.append("}")
         }
   }
@@ -62,7 +72,7 @@ case class JString(value: String) extends JValue{
 
 case class JNumber(value: Double) extends JValue{
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
-    sb.append("%s".format(value))
+    sb.append("%s".format(value.toInt))
   }
 }
 
