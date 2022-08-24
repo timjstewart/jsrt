@@ -58,4 +58,33 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
 """.trim)
   }
 
+  "An Object with an array property" should "be pretty printed correctly" in {
+      JObject(
+        List("name" -> JString("Tim"), "numbers" -> JArray(JNumber(1), JNumber(2)))
+      ).prettyPrint should be("""
+{
+  "name": "Tim",
+  "numbers": [1, 2]
 }
+  """.trim)
+    }
+
+  "An Object with an nested object" should "be pretty printed correctly" in {
+        JObject(
+          List("field" -> JObject(
+            List(
+              "name" -> JString("capacity"),
+              "type" -> JString("number")
+               )
+            )
+          )
+        ).prettyPrint should be("""
+{
+  "field": {
+    "name": "capacity",
+    "type": "number"
+  }
+}
+    """.trim)
+      }
+  }
