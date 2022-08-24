@@ -1,6 +1,12 @@
 package json
 
 sealed abstract class JValue {
+  def isObject = false
+  def isArray = false
+  def isNumber = false
+  def isBool = false
+  def isNull = false
+  def isString = false
 
   def prettyPrint: String = {
     val sb = new StringBuffer()
@@ -19,70 +25,96 @@ sealed abstract class JValue {
 }
 
 case object JNull extends JValue {
+  override def isNull = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("null")
   }
 }
 
 case class JArray(elements: List[JValue]) extends JValue {
+  override def isArray = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("[")
     if (elements.isEmpty) {
       sb.append("]")
     } else {
-      //sb.append("\n")
-      elements.zipWithIndex.foreach{x =>
-        if (x._2 > 0)
-          sb.append(", ")
-        x._1.prettyPrintInternal(sb, level + 1)}
-      //indent(sb, level)
+      // if we have any objects, print every element on its own line.
+      val anyObjects = elements.exists(x => x.isObject)
+      if (anyObjects) {
+        sb.append("\n")
+        indent(sb, level)
+      }
+      elements.zipWithIndex.foreach { x =>
+        // between elements
+        if (x._2 > 0) {
+          if (anyObjects) {
+            sb.append(",\n")
+          } else {
+            sb.append(", ")
+          }
+        }
+        // right before the element
+        if (anyObjects) {
+            indent(sb, level + 1)
+        }
+        x._1.prettyPrintInternal(sb, level + 1)
+      }
+      // after all the elements
+      if (anyObjects) {
+          sb.append("\n")
+          indent(sb, level)
+      }
       sb.append("]")
     }
   }
 }
 
-case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue{
+case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue {
+  override def isObject: Boolean = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("{")
-        if (properties.isEmpty) {
-          sb.append("}")
-        } else {
-          sb.append("\n")
+    if (properties.isEmpty) {
+      sb.append("}")
+    } else {
+      sb.append("\n")
 
-          properties.zipWithIndex.foreach{x =>
-            if (x._2 > 0) {
-              sb.append(",\n")
-            }
-            indent(sb, level + 1)
-            sb.append(""""%s": """.format(x._1._1))
-            x._1._2.prettyPrintInternal(sb, level + 1)
-          }
-          sb.append("\n")
-          indent(sb, level)
-          sb.append("}")
+      properties.zipWithIndex.foreach { x =>
+        if (x._2 > 0) {
+          sb.append(",\n")
         }
+        indent(sb, level + 1)
+        sb.append(""""%s": """.format(x._1._1))
+        x._1._2.prettyPrintInternal(sb, level + 1)
+      }
+      sb.append("\n")
+      indent(sb, level)
+      sb.append("}")
+    }
   }
 }
 
-case class JString(value: String) extends JValue{
+case class JString(value: String) extends JValue {
+  override def isString: Boolean = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append(""""%s"""".format(value))
   }
 }
 
-case class JNumber(value: Double) extends JValue{
+case class JNumber(value: Double) extends JValue {
+  override def isNumber: Boolean = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("%s".format(value.toInt))
   }
 }
 
-case class JBool(value: Boolean) extends JValue{
+case class JBool(value: Boolean) extends JValue {
+  override def isBool: Boolean = true
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("%s".format(if (value) "true" else "false"))
   }
 }
 
-case class JProperty(obj: JObject, name: String) extends JValue{
+case class JProperty(obj: JObject, name: String) extends JValue {
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = ???
 }
 

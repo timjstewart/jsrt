@@ -113,4 +113,14 @@ class JsonSpec extends AnyFlatSpec with should.Matchers {
 }
 """.trim)
   }
+
+  "An Array of objects" should "be pretty printed correctly" in {
+    println(JArray(JObject(), JObject()).prettyPrint)
+      JArray(JObject(), JObject()).prettyPrint should be("""
+[
+  {},
+  {}
+]
+""".trim)
+    }
 }
