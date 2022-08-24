@@ -1,24 +1,10 @@
-sealed abstract class JValue
-case object JNull extends JValue
-case class JArray(elements: List[JValue]) extends JValue
-case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue
-case class JString(value: String) extends JValue
-case class JNumber(value: Double) extends JValue
-case class JBool(value: Boolean) extends JValue
-private case class JProperty(obj: JObject, name: String) extends JValue
+package parser
 
-object JArray {
-  def apply(jValues: JValue*): JArray = JArray(List(jValues: _*))
-}
-
-object JObject {
-  def apply(properties: Tuple2[String, JValue]*): JObject = JObject(
-    List(properties: _*)
-  )
-}
+import json._
 
 object Parser {
-  import Lexer._
+  import lexer._
+  import lexer.Lexer._
 
   val JTrue = JBool(true)
   val JFalse = JBool(false)

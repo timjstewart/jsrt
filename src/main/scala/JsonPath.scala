@@ -24,17 +24,14 @@ package path {
     def apply(steps: Step*): JsonPath = JsonPath(List(steps: _*))
 
     def parse(pathText: String): Either[String, JsonPath] = {
-      println("PARSE EX: %s".format(JsonPath(toSegments(pathText).flatMap(parseSegment)).steps))
       Right(JsonPath(toSegments(pathText).flatMap(parseSegment).reverse))
     }
 
     private def toSegments(pathText: String): List[String] = {
-      println("SEGMENTS: %s".format(pathText.split('.').toList))
       pathText.split('.').toList
     }
 
     private def parseSegment(segment: String): List[Step] = {
-      println("PARSE SEG: %s".format(segment))
       val index = segment.indexOf('[')
       if (index == -1) {
         List(PropertyName(segment))

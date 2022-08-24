@@ -1,7 +1,9 @@
-object JsonToJavascriptExtractor {
+import parser._
+import json._
+import json.path._
+import json.path.pattern._
 
-  import json.path._
-  import json.path.pattern._
+object JsonToJavascriptExtractor {
 
   type SourceCode = String
 

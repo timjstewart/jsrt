@@ -1,3 +1,5 @@
+package lexer
+
 object Lexer {
 
   import scala.io.Source

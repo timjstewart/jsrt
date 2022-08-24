@@ -8,42 +8,42 @@ class JavascriptToJsonConverterSpec
     with should.Matchers
     with EitherValues {
 
-  "A converter" should "extract an empty array correctly" in {
+//   "A converter" should "extract an empty array correctly" in {
 
-println("*****FUN: %s".format(JavaScriptToJsonConverter.merge(
-      """
-/** path(code) */
-function foo() {
-    return 42;
-}
-""",
-      """
-{
-   "code": ""
-}
-"""
-    )))
+// println("*****FUN: %s".format(JavaScriptToJsonConverter.merge(
+//       """
+// /** path(code) */
+// function foo() {
+//     return 42;
+// }
+// """,
+//       """
+// {
+//    "code": ""
+// }
+// """
+//     )))
 
 
-    JavaScriptToJsonConverter.merge(
-      """
-/** path(code) */
-function foo() {
-    return 42;
-}
-""",
-      """
-{
-   "code": ""
-}
-"""
-    ).value should be(
-"""
-{
-   "code": "return 42;"
-}
-"""
-  )
-  }
+//     JavaScriptToJsonConverter.merge(
+//       """
+// /** path(code) */
+// function foo() {
+//     return 42;
+// }
+// """,
+//       """
+// {
+//    "code": ""
+// }
+// """
+//     ).value should be(
+// """
+// {
+//    "code": "return 42;"
+// }
+// """
+//   )
+//   }
 
 }

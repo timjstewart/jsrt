@@ -1,5 +1,7 @@
+import json._
 import json.path._
 import json.path.pattern._
+import parser._
 
 object JavaScriptToJsonConverter {
 
@@ -62,25 +64,21 @@ object JavaScriptToJsonConverter {
     }
 
     def codeBody(block: JavaScriptText): Either[String, JavaScriptText] = {
-      println("GETTING BODY FROM: %s".format(block))
       (for {
         prefix <- functionPrefixRegEx.findFirstMatchIn(block)
         suffix <- functionSuffixRegEx.findFirstMatchIn(block)
       } yield block.substring(prefix.end, suffix.start)) match {
         case Some(body) =>
-          println("BODY: %s".format(body))
           Right(body)
         case None => Left("could not get function body from: %s".format(block))
       }
     }
 
     def codeMap(block: JavaScriptText, body: JavaScriptText): Either[String, CodeMap] = {
-      println("GETTING CODE MAP FROM: %s".format(block))
       pathRegEx.findFirstMatchIn((block)) match {
         case         Some(md) =>
           JsonPath.parse(md.group(1)) match {
             case Right(path) =>
-              println("PATH: %s - %s, BODY: %s".format(path.steps, path, body))
               Right(Map(path -> body))
             case Left(error) => Left(error)
           }
@@ -121,41 +119,41 @@ object JavaScriptToJsonConverter {
       jValue: JValue,
       codeMap: CodeMap
   ): Either[String, JsonText] = {
-    println("INJECT: %s into %s".format(codeMap, jValue))
-    Left("errror")
+    val result = traverseJson(JsonPath(), jValue, codeMap)
+    Right(jValue.prettyPrint)
   }
 
-  // private def traverseJson(
-  //     path: JsonPath,
-  //     jValue: JValue,
-  //     codeMap: CodeMap, JavaScriptText],
-  // ): JValue = {
-  //   jValue match {
-  //     case JArray(elements) =>
-  //       elements.zipWithIndex.foreach { case (element, index) =>
-  //         traverseJson(
-  //           ArrayIndex(index) :: path,
-  //           element,
-  //           codeMap
-  //         )
-  //       }
-  //     case JObject(properties) =>
-  //       properties.foreach { case (name, value) =>
-  //         traverseJson(
-  //           PropertyName(name) :: path,
-  //           value,
-  //           codeMap
-  //         )
-  //       }
-  //     case JString(value) =>
-  //       codeMap.foreach { case (jsonPath: JsonPath, code: JavaScriptText) =>
-  //         if (jsonPath.matches(path)) {
-  //           println("HI")
-  //         }
-  //       }
-  //     case _ => ()
-  //   }
-  //   output
-  // }
+  private def traverseJson(
+      path: JsonPath,
+      jValue: JValue,
+      codeMap: CodeMap,
+  ): JValue = {
+    jValue match {
+      case JArray(elements) =>
+        JArray(elements.zipWithIndex.map { case (element, index) =>
+          traverseJson(
+            ArrayIndex(index) :: path,
+            element,
+            codeMap
+          )
+        })
 
+      case JObject(properties) =>
+        var newProperties = List.empty[Tuple2[String, JValue]]
+        properties.foreach { case (name, value) =>
+          newProperties :+= name -> traverseJson(
+            PropertyName(name) :: path,
+            value,
+            codeMap
+          )
+        }
+        JObject(newProperties)
+
+      case JString(value) =>
+        val result = JString(codeMap.find {_._1 == path}.map(_._2).getOrElse(value))
+        result
+
+      case x => x
+    }
+  }
 }
