@@ -16,7 +16,7 @@ object Parser {
     case Right(Tuple2(tokens, remaining)) =>
       val result = tokens.foldLeft[Either[String, List[JValue]]](
         Right(List.empty[JValue])
-      )((stack, token) => combineTokens(stack, token))
+      )((stack, token) => foldToken(stack, token))
       result match {
         case Right(JProperty(obj, name) :: Nil) =>
           Left(
@@ -27,7 +27,7 @@ object Parser {
       }
   }
 
-  private def combineTokens(
+  private def foldToken(
       stack: Either[String, List[JValue]],
       token: Token
   ) = {

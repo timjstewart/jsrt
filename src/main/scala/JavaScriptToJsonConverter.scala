@@ -11,20 +11,36 @@ object JavaScriptToJsonConverter {
 
   type CodeMap = Map[JsonPath, JavaScriptText]
 
-  object JavaScriptParser {
+  def merge(
+        javaScript: JavaScriptText,
+        jsonText: JsonText
+    ): Either[String, JsonText] = {
+      for {
+        jValue <- Parser.parse(jsonText)
+        extractCodeMap <- JavaScriptParser.parse(javaScript)
+        merged <- injectCodeMap(jValue, extractCodeMap)
+      } yield merged
+    }
 
+  private object JavaScriptParser {
+
+    // locates the JSON path where the code was extracted from
     val pathRegEx = """/\*\* path\((.*)\) \*/""".r
+
+    // locates the beginning of the generated function that wraps the code
     val functionPrefixRegEx = """function .*(.*) *{\n""".r
+
+    // locates the end of the generated function that wraps the code
     val functionSuffixRegEx = """\n}""".r
 
     def parse(javaScript: JavaScriptText): Either[String, CodeMap] = {
       for {
-        block <- chunkCode(javaScript)
-        codeMap <- buildCodeMap(block)
-      } yield codeMap
+        block <- extractFunctions(javaScript)
+        extractCodeMap <- combineCodeMaps(block)
+      } yield extractCodeMap
     }
 
-    def chunkCode(
+    private def extractFunctions(
         javaScript: JavaScriptText
     ): Either[String, List[JavaScriptText]] = {
       Right(
@@ -44,14 +60,14 @@ object JavaScriptToJsonConverter {
       )
     }
 
-    def buildCodeMap(
+    private def combineCodeMaps(
         codeBlocks: List[JavaScriptText]
     ): Either[String, CodeMap] = {
       try {
         val codeMaps: List[CodeMap] = for {
           block <- codeBlocks
-          Right(body) = codeBody(block)
-          Right(map) = codeMap(block, body)
+          Right(body) = extractCodeBody(block)
+          Right(map) = extractCodeMap(block, body)
         } yield (map)
         Right(codeMaps.reduce { (lhs, rhs) => lhs ++ rhs })
       } catch {
@@ -59,7 +75,7 @@ object JavaScriptToJsonConverter {
       }
     }
 
-    def codeBody(block: JavaScriptText): Either[String, JavaScriptText] = {
+    private def extractCodeBody(block: JavaScriptText): Either[String, JavaScriptText] = {
       (for {
         prefix <- functionPrefixRegEx.findFirstMatchIn(block)
         suffix <- functionSuffixRegEx.findFirstMatchIn(block)
@@ -70,9 +86,12 @@ object JavaScriptToJsonConverter {
       }
     }
 
-    def codeMap(block: JavaScriptText, body: JavaScriptText): Either[String, CodeMap] = {
+    private def extractCodeMap(
+        block: JavaScriptText,
+        body: JavaScriptText
+    ): Either[String, CodeMap] = {
       pathRegEx.findFirstMatchIn((block)) match {
-        case         Some(md) =>
+        case Some(md) =>
           JsonPath.parse(md.group(1)) match {
             case Right(path) =>
               Right(Map(path -> body))
@@ -108,28 +127,17 @@ object JavaScriptToJsonConverter {
     }
   }
 
-  def merge(
-      javaScript: JavaScriptText,
-      jsonText: JsonText
-  ): Either[String, JsonText] = {
-    for {
-      jValue <- Parser.parse(jsonText)
-      codeMap <- JavaScriptParser.parse(javaScript)
-      merged <- injectCodeMap(jValue, codeMap)
-    } yield merged
-  }
-
   private def injectCodeMap(
       jValue: JValue,
-      codeMap: CodeMap
+      extractCodeMap: CodeMap
   ): Either[String, JsonText] = {
-    Right(traverseJson(JsonPath(), jValue, codeMap).prettyPrint)
+    Right(traverseJson(JsonPath(), jValue, extractCodeMap).prettyPrint)
   }
 
   private def traverseJson(
       path: JsonPath,
       jValue: JValue,
-      codeMap: CodeMap,
+      extractCodeMap: CodeMap
   ): JValue = {
     jValue match {
       case JArray(elements) =>
@@ -137,7 +145,7 @@ object JavaScriptToJsonConverter {
           traverseJson(
             ArrayIndex(index) :: path,
             element,
-            codeMap
+            extractCodeMap
           )
         })
         result
@@ -148,13 +156,13 @@ object JavaScriptToJsonConverter {
           newProperties :+= name -> traverseJson(
             PropertyName(name) :: path,
             value,
-            codeMap
+            extractCodeMap
           )
         }
         JObject(newProperties)
 
       case JString(value) =>
-        JString(codeMap.find {_._1 == path}.map(_._2).getOrElse(value))
+        JString(extractCodeMap.find { _._1 == path }.map(_._2).getOrElse(value))
 
       case x =>
         println("Doing nothing for: %s".format(x))

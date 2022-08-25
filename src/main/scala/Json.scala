@@ -26,6 +26,7 @@ sealed abstract class JValue {
 
 case object JNull extends JValue {
   override def isNull = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("null")
   }
@@ -33,6 +34,7 @@ case object JNull extends JValue {
 
 case class JArray(elements: List[JValue]) extends JValue {
   override def isArray = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("[")
     if (elements.isEmpty) {
@@ -71,6 +73,7 @@ case class JArray(elements: List[JValue]) extends JValue {
 
 case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue {
   override def isObject: Boolean = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("{")
     if (properties.isEmpty) {
@@ -95,6 +98,7 @@ case class JObject(properties: List[Tuple2[String, JValue]]) extends JValue {
 
 case class JString(value: String) extends JValue {
   override def isString: Boolean = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append(""""%s"""".format(value))
   }
@@ -102,6 +106,7 @@ case class JString(value: String) extends JValue {
 
 case class JNumber(value: Double) extends JValue {
   override def isNumber: Boolean = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("%s".format(value.toInt))
   }
@@ -109,6 +114,7 @@ case class JNumber(value: Double) extends JValue {
 
 case class JBool(value: Boolean) extends JValue {
   override def isBool: Boolean = true
+
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("%s".format(if (value) "true" else "false"))
   }

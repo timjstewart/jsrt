@@ -14,12 +14,12 @@ object Main {
       }
 
       JsonToJavascriptExtractor.extract(text, patterns) match {
-        case Right(javaScript) => write(javaScript, arg + ".js")
+        case Right(javaScript) => writeToFile(javaScript, arg + ".js")
         case Left(error)       => Left(error)
       }
     }
 
-  private def write(text: String, fileName: String): Unit = {
+  private def writeToFile(text: String, fileName: String): Unit = {
     import java.io.File
     import java.io.PrintWriter
     val writer = new PrintWriter(new File(fileName))
