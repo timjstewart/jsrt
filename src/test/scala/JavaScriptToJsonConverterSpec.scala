@@ -8,7 +8,7 @@ class JavascriptToJsonConverterSpec
     with should.Matchers
     with EitherValues {
 
-  "A converter" should "merge code" in {
+  "A converter" should "merge a one line function" in {
 
     JavaScriptToJsonConverter.merge(
       """
@@ -29,4 +29,29 @@ function foo() {
 }
 """.trim)
   }
+
+  it should "merge a function with a nested block" in {
+
+        JavaScriptToJsonConverter.merge("""
+/** path(code) */
+function foo() {
+  if (true) {
+    return 42;
+  }
+}
+""".trim,
+"""
+{
+    "code": "return 42;"
+}
+"""
+        ).value should be(
+"""
+{
+  "code": "if (true) {
+  return 42;
+}"
+}
+""".trim)
+      }
 }
