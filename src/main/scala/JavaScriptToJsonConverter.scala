@@ -14,8 +14,8 @@ object JavaScriptToJsonConverter {
   object JavaScriptParser {
 
     val pathRegEx = """/\*\* path\((.*)\) \*/""".r
-    val functionPrefixRegEx = """function .*(.*) *{""".r
-    val functionSuffixRegEx = """}""".r
+    val functionPrefixRegEx = """function .*(.*) *{\n""".r
+    val functionSuffixRegEx = """\n}""".r
 
     def parse(javaScript: JavaScriptText): Either[String, CodeMap] = {
       for {
@@ -27,7 +27,6 @@ object JavaScriptToJsonConverter {
     def chunkCode(
         javaScript: JavaScriptText
     ): Either[String, List[JavaScriptText]] = {
-      println("Chunk [%s]".format(javaScript))
       Right(
         pathRegEx
           .findAllMatchIn(javaScript)
@@ -35,14 +34,11 @@ object JavaScriptToJsonConverter {
           .sliding(2)
           .map {
             case lhs :: rhs :: Nil =>
-              println("2: %s -> %s".format(lhs, rhs))
               javaScript.substring(lhs.start, rhs.start)
             case only :: Nil =>
-              println("1: %s".format(only))
               javaScript.substring(only.start)
             case x =>
-              println("0: %s".format(x))
-              "REST"
+              "MATCHED WRONG!"
           }
           .toList
       )
@@ -69,7 +65,7 @@ object JavaScriptToJsonConverter {
         suffix <- functionSuffixRegEx.findFirstMatchIn(block)
       } yield block.substring(prefix.end, suffix.start)) match {
         case Some(body) =>
-          Right(body)
+          Right(unindent(body))
         case None => Left("could not get function body from: %s".format(block))
       }
     }
@@ -83,7 +79,15 @@ object JavaScriptToJsonConverter {
             case Left(error) => Left(error)
           }
         case None => Left("no code map found in block: %s".format(block))
+      }
+    }
 
+    private def unindent(text: String): String = {
+      val canIndent = text.split('\n').forall(p => p.startsWith("  "))
+      if (canIndent) {
+        text.split('\n').map(s => s.substring(2)).mkString("\n")
+      } else {
+        text
       }
     }
 
@@ -119,8 +123,7 @@ object JavaScriptToJsonConverter {
       jValue: JValue,
       codeMap: CodeMap
   ): Either[String, JsonText] = {
-    val result = traverseJson(JsonPath(), jValue, codeMap)
-    Right(jValue.prettyPrint)
+    Right(traverseJson(JsonPath(), jValue, codeMap).prettyPrint)
   }
 
   private def traverseJson(
@@ -130,13 +133,14 @@ object JavaScriptToJsonConverter {
   ): JValue = {
     jValue match {
       case JArray(elements) =>
-        JArray(elements.zipWithIndex.map { case (element, index) =>
+        val result = JArray(elements.zipWithIndex.map { case (element, index) =>
           traverseJson(
             ArrayIndex(index) :: path,
             element,
             codeMap
           )
         })
+        result
 
       case JObject(properties) =>
         var newProperties = List.empty[Tuple2[String, JValue]]
@@ -150,10 +154,11 @@ object JavaScriptToJsonConverter {
         JObject(newProperties)
 
       case JString(value) =>
-        val result = JString(codeMap.find {_._1 == path}.map(_._2).getOrElse(value))
-        result
+        JString(codeMap.find {_._1 == path}.map(_._2).getOrElse(value))
 
-      case x => x
+      case x =>
+        println("Doing nothing for: %s".format(x))
+        x
     }
   }
 }
