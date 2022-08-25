@@ -7,6 +7,7 @@ case class Property(name: String) extends Step(name)
 case object PropertyWildCard extends Step("*")
 case class Index(n: Int) extends Step("[%s]".format(n))
 case object IndexWildCard extends Step("[]")
+case object DeepWildCard extends Step("**")
 
 sealed case class Pattern(patterns: List[Step]) {
   def matches(jsonPath: JsonPath): Boolean = {
@@ -33,6 +34,8 @@ object Pattern {
   private def parseProperty(propertyText: String): List[Step] =
     List(if (propertyText == "*") {
       PropertyWildCard
+    } else if (propertyText == "**") {
+      DeepWildCard
     } else {
       Property(propertyText)
     })

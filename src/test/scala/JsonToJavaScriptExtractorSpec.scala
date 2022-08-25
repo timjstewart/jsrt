@@ -8,11 +8,11 @@ class JsonToJavascriptExtractorSpec
     with should.Matchers
     with EitherValues {
 
-  "A converter" should "extract an empty array correctly" in {
+  "An extractor" should "extract an empty array correctly" in {
     JsonToJavascriptExtractor.extract("[]").value shouldBe ("")
   }
 
-  "A converter" should "extract two blocks of code" in {
+  it should "extract two blocks of code" in {
     val text = """
 [
   {
@@ -40,7 +40,7 @@ function func() {
 """.trim)
   }
 
-  "A converter" should "extract code with indentation" in {
+  it should "extract code with indentation" in {
     val text = """
 [
   {
