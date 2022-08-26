@@ -7,9 +7,8 @@ object Main {
     args.foreach { arg =>
       val text = Source.fromFile(arg).getLines().mkString("\n")
 
-      // TODO: read this from config
       var patterns = Map.empty[Pattern, String]
-      Pattern.parse("[].top.blocks[].name").foreach {
+      Pattern.parse("**.name").foreach {
         pattern => patterns = patterns + (pattern -> "name")
       }
 
