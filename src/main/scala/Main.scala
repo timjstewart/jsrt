@@ -5,7 +5,11 @@ import json.path.pattern.Property
 object Main {
   def main(args: Array[String]): Unit =
     args.foreach { arg =>
-      val text = Source.fromFile(arg).getLines().mkString("\n")
+      extractJavaScript(arg)
+    }
+
+   private def extractJavaScript(file: String): Unit = {
+      val text = Source.fromFile(file).getLines().mkString("\n")
 
       var patterns = Map.empty[Pattern, String]
       Pattern.parse("**.name").foreach {
@@ -13,7 +17,7 @@ object Main {
       }
 
       JsonToJavascriptExtractor.extract(text, patterns) match {
-        case Right(javaScript) => writeToFile(javaScript, arg + ".js")
+        case Right(javaScript) => writeToFile(javaScript, file + ".js")
         case Left(error)       => Left(error)
       }
     }

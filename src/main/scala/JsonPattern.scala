@@ -14,10 +14,6 @@ sealed case class Pattern(patterns: List[Step]) {
   def matches(jsonPath: JsonPath): Boolean = {
 
     def loop(patternSteps: List[Step], pathSteps: List[PathStep]): Boolean = {
-      println("""LOOP:
-  PATTERN: %s
-  PATH:    %s
-""".format(patternSteps, pathSteps))
       patternSteps match {
 
         case Property(lhs) :: lhsRest =>
