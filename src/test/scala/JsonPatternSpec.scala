@@ -66,15 +66,14 @@ class JsonPatternSpec
   }
 
   it should "should not match a property path with a different property name" in {
-      val path = JsonPath(PropertyName("prop"))
-      Pattern.parse("outer").value.matches(path) should be(false)
+    val path = JsonPath(PropertyName("prop"))
+    Pattern.parse("outer").value.matches(path) should be(false)
   }
 
   "A two property pattern" should "match a property path" in {
     val path = JsonPath(PropertyName("inner"), PropertyName("outer"))
     Pattern.parse("outer.inner").value.matches(path) should be(true)
   }
-
 
   "A pattern with an index wild card" should "should match a property path" in {
     val path = JsonPath(ArrayIndex(3), PropertyName("prop"))
@@ -160,16 +159,53 @@ class JsonPatternSpec
   }
 
   "A pattern with an deep wild card" should "parses correctly" in {
-      Pattern.parse("**.name").value should be(
-        Pattern(
-          DeepWildCard,
-          Property("name")
-        )
+    Pattern.parse("**.name").value should be(
+      Pattern(
+        DeepWildCard,
+        Property("name")
       )
-    }
+    )
+  }
 
-  // "A deep wild card pattern" should "match a property path" in {
-  //     val Right(path) = JsonPath.parse("top.middle.name")
-  //     Pattern.parse("**.name").value.matches(path) should be(true)
-  //   }
+  "A deep wild card pattern" should "match a property path" in {
+    val Right(path) = JsonPath.parse("top.middle.name")
+    Pattern.parse("**.name").value.matches(path) should be(true)
+  }
+
+  "A deep wild card pattern" should "match a property path with indexes in it" in {
+    val Right(path) = JsonPath.parse("top[3].middle[3].name")
+    Pattern.parse("**.name").value.matches(path) should be(true)
+  }
+
+  "A deep wild card pattern" should "not match a property path with an extra path component" in {
+    val Right(path) = JsonPath.parse("top[3].middle[3].name[3]")
+    Pattern.parse("**.name").value.matches(path) should be(false)
+  }
+
+  "A double deep wild card pattern" should "match a property path" in {
+    val Right(path) = JsonPath.parse("top.middle.name")
+    Pattern.parse("**.**.name").value.matches(path) should be(true)
+  }
+
+  "A double deep wild card pattern" should "match a property path with two path components" in {
+    val Right(path) = JsonPath.parse("top.name")
+    Pattern.parse("**.**.name").value.matches(path) should be(true)
+  }
+
+  "An excessively deep wild card pattern" should "match a property path" in {
+    val Right(path) = JsonPath.parse("top.middle.name")
+    Pattern.parse("**.top.**.middle.**.name").value.matches(path) should be(
+      true
+    )
+  }
+
+  "An deep wild card pattern" should "match an empty property path" in {
+    val Right(path) = JsonPath.parse("")
+    Pattern.parse("**").value.matches(path) should be(true)
+  }
+
+  "An deep wild card pattern" should "match a path with fewer components" in {
+    val Right(path) = JsonPath.parse("name")
+    Pattern.parse("name.**").value.matches(path) should be(true)
+  }
 }

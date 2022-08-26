@@ -1,6 +1,7 @@
 package json.path.pattern
 
 import json.path._
+import json.path.{Step => PathStep}
 
 sealed abstract class Step(val text: String)
 case class Property(name: String) extends Step(name)
@@ -11,13 +12,98 @@ case object DeepWildCard extends Step("**")
 
 sealed case class Pattern(patterns: List[Step]) {
   def matches(jsonPath: JsonPath): Boolean = {
-    patterns.zip(jsonPath.steps.reverse).forall {
-      case (Property(lhs), PropertyName(rhs))  => lhs == rhs
-      case (PropertyWildCard, PropertyName(_)) => true
-      case (Index(lhs), ArrayIndex(rhs))       => lhs == rhs
-      case (IndexWildCard, ArrayIndex(_))      => true
-      case _                                   => false
+
+    def loop(patternSteps: List[Step], pathSteps: List[PathStep]): Boolean = {
+      println("""LOOP:
+  PATTERN: %s
+  PATH:    %s
+""".format(patternSteps, pathSteps))
+      patternSteps match {
+
+        case Property(lhs) :: lhsRest =>
+          pathSteps match {
+            case PropertyName(rhs) :: rhsRest =>
+              lhs == rhs && loop(lhsRest, rhsRest)
+            case _ => false
+          }
+
+        case PropertyWildCard :: lhsRest =>
+          pathSteps match {
+            case PropertyName(name) :: rhsRest => loop(lhsRest, rhsRest)
+            case _                             => false
+          }
+
+        case Index(lhs) :: lhsRest =>
+          pathSteps match {
+            case ArrayIndex(rhs) :: rhsRest =>
+              lhs == rhs && loop(lhsRest, rhsRest)
+            case _ => false
+          }
+
+        case IndexWildCard :: lhsRest =>
+          pathSteps match {
+            case ArrayIndex(_) :: rhsRest => loop(lhsRest, rhsRest)
+            case _                        => false
+          }
+
+        // If the lookAhead pattern step matches the next path step, then
+        // consume the lookAhead pattern step and the lookAhead, as well as the
+        // next pattern step.
+        case DeepWildCard :: lookAhead :: lhsRest =>
+          lookAhead match {
+            case Property(lhs) =>
+              pathSteps match {
+                case Nil                      => true
+                case ArrayIndex(_) :: rhsRest => loop(patternSteps, rhsRest)
+                case PropertyName(rhs) :: rhsRest =>
+                  if (lhs == rhs) loop(lhsRest, rhsRest)
+                  else loop(patternSteps, rhsRest)
+              }
+
+            case PropertyWildCard =>
+              pathSteps match {
+                case Nil                      => true
+                case ArrayIndex(_) :: rhsRest => loop(patternSteps, rhsRest)
+                case PropertyName(_) :: rhsRest =>
+                  loop(lookAhead :: lhsRest, rhsRest)
+              }
+
+            case Index(lhs) =>
+              pathSteps match {
+                case Nil => true
+                case ArrayIndex(rhs) :: rhsRest =>
+                  lhs == rhs && loop(lhsRest, rhsRest)
+                case PropertyName(name) :: rhsRest =>
+                  loop(patternSteps, rhsRest)
+              }
+
+            case IndexWildCard =>
+              pathSteps match {
+                case Nil                        => true
+                case ArrayIndex(_) :: rhsRest   => loop(lhsRest, rhsRest)
+                case PropertyName(_) :: rhsRest => loop(patternSteps, rhsRest)
+              }
+
+            case DeepWildCard =>
+              pathSteps match {
+                case Nil                      => true
+                case ArrayIndex(_) :: rhsRest => ???
+                case PropertyName(_) :: rhsRest =>
+                  loop(lookAhead :: lhsRest, rhsRest)
+              }
+          }
+
+        case DeepWildCard :: Nil => true
+
+        case Nil =>
+          pathSteps match {
+            case Nil => true
+            case _   => false
+          }
+      }
     }
+
+    loop(patterns.reverse, jsonPath.steps)
   }
 }
 
