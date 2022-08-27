@@ -44,7 +44,6 @@ case class JArray(elements: List[JValue]) extends JValue {
       val anyObjects = elements.exists(x => x.isObject)
       if (anyObjects) {
         sb.append("\n")
-        indent(sb, level)
       }
       elements.zipWithIndex.foreach { x =>
         // between elements
