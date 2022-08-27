@@ -30,7 +30,7 @@ object Main {
 
     JsonToJavascriptExtractor.extract(text, patterns) match {
       case Right(javaScript) => writeToFile(javaScript, file + ".js")
-      case Left(error)       => println(error)
+      case Left(error)       => println("error: %s".format(error))
     }
   }
 
@@ -43,7 +43,7 @@ object Main {
 
     JavaScriptToJsonConverter.merge(javaScript, json) match {
       case Right(jsonText) => writeToFile(jsonText, outputFile)
-      case Left(error)     => println(error)
+      case Left(error)     => println("error: %s".format(error))
     }
   }
 
