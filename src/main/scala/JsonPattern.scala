@@ -13,7 +13,8 @@ case object DeepWildCard extends Step("**")
 sealed case class Pattern(patterns: List[Step]) {
   def matches(jsonPath: JsonPath): Boolean = {
 
-    def loop(patternSteps: List[Step], pathSteps: List[PathStep]): Boolean = {
+      @annotation.tailrec
+      def loop(patternSteps: List[Step], pathSteps: List[PathStep]): Boolean = {
       patternSteps match {
 
         case Property(lhs) :: lhsRest =>

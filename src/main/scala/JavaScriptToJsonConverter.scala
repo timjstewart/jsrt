@@ -3,6 +3,9 @@ import json.path._
 import json.path.pattern._
 import parser._
 
+import scala.util.matching.Regex.MatchData
+
+
 object JavaScriptToJsonConverter {
 
   type JsonText = String
@@ -43,21 +46,14 @@ object JavaScriptToJsonConverter {
     private def extractFunctions(
         javaScript: JavaScriptText
     ): Either[String, List[JavaScriptText]] = {
-      Right(
-        pathRegEx
-          .findAllMatchIn(javaScript)
-          .toList
-          .sliding(2)
-          .map {
-            case lhs :: rhs :: Nil =>
-              javaScript.substring(lhs.start, rhs.start)
-            case only :: Nil =>
-              javaScript.substring(only.start)
-            case x =>
-              "MATCHED WRONG!"
-          }
-          .toList
-      )
+      def loop(matches: List[MatchData]): List[JavaScriptText] = matches match {
+        case first :: second :: rest => // create block between first and second
+         javaScript.substring(first.start, second.start) :: loop(second :: rest)
+        case last :: Nil => // create block between first and last
+          List(javaScript.substring(last.start))
+        case Nil => Nil
+      }
+      Right(loop(pathRegEx.findAllMatchIn(javaScript).toList))
     }
 
     private def combineCodeMaps(

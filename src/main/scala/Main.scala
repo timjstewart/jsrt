@@ -3,14 +3,18 @@ import json.path.pattern.Pattern
 import json.path.pattern.Property
 
 object Main {
+
   def main(args: Array[String]): Unit =
     args.foreach { arg =>
-      if (arg.endsWith(".json"))
+      if (arg.endsWith(".json")) {
+        println("extracting JavaScript from: %s".format(arg))
         extractJavaScript(arg)
-      else if (arg.endsWith(".js"))
+      } else if (arg.endsWith(".js")) {
+        println("merging JavaScript from: %s".format(arg))
         mergeJavaScriptIntoJson(arg)
-      else
-        println("huh?")
+      } else {
+        println("ignoring file: %s".format(arg))
+      }
     }
 
   private def extractJavaScript(file: String): Unit = {
@@ -28,11 +32,14 @@ object Main {
   }
 
   private def mergeJavaScriptIntoJson(file: String): Unit = {
+    val jsonFile = file.replace(".json.js", ".json")
+    val outputFile = file.replace(".json.js", ".out.json")
+
     val javaScript = Source.fromFile(file).getLines().mkString("\n")
-    val json = Source.fromFile(file.replace(".json.js", ".json")).getLines().mkString("\n")
+    val json = Source.fromFile(jsonFile).getLines().mkString("\n")
 
     JavaScriptToJsonConverter.merge(javaScript, json) match {
-      case Right(jsonText) => writeToFile(jsonText, file + ".json.out")
+      case Right(jsonText) => writeToFile(jsonText, outputFile)
       case Left(error)     => println(error)
     }
   }
