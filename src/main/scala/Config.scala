@@ -1,11 +1,23 @@
 package config
 
+import scala.io.Source
+
 object Config {
-  def load(configText: String): Either[String, Config] =
+
+  val empty: Config = new Config(Map.empty[String, String])
+
+  def loadFromFile(fileName: String): Either[String, Config] =
+    try {
+      loadFromString(Source.fromFile(fileName).getLines().mkString("\n"))
+    } catch {
+      case ex: java.io.FileNotFoundException => Right(Config.empty)
+    }
+
+  def loadFromString(configText: String): Either[String, Config] =
     Right(
       new Config(
-        configText.split('\n').foldLeft(Map.empty[String, String])
-          { (accum, line) =>
+        configText.split('\n').foldLeft(Map.empty[String, String]) {
+          (accum, line) =>
             if (line.trim.startsWith("#")) accum
             else {
               val parts = line.split('=')
@@ -16,8 +28,9 @@ object Config {
                 accum + (parts(0).trim -> parts(1).trim)
               }
             }
-          }
-      ))
+        }
+      )
+    )
 }
 
 class Config(values: Map[String, String] = Map.empty) {

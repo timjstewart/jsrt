@@ -8,23 +8,23 @@ import org.scalatest.matchers.should._
 class ConfigSpec extends AnyFlatSpec with should.Matchers with OptionValues {
 
   "An empty configuration" should "load" in {
-    val Right(config) = Config.load("")
+    val Right(config) = Config.loadFromString("")
     config.getKeys() shouldBe empty
   }
 
   "An configuration with a comment" should "load" in {
-    val Right(config) = Config.load("# this is a comment")
+    val Right(config) = Config.loadFromString("# this is a comment")
     config.getKeys() shouldBe empty
   }
 
   "An configuration with a value" should "load" in {
-    val Right(config) = Config.load("name = Fred")
+    val Right(config) = Config.loadFromString("name = Fred")
     config.getKeys() should be(Set("name"))
     config.getValue("name").value should be("Fred")
   }
 
   "An configuration with two values" should "load" in {
-    val Right(config) = Config.load("""
+    val Right(config) = Config.loadFromString("""
 # Fred's name
 name = Fred
 # Fred's age
@@ -36,7 +36,7 @@ age = 40
   }
 
   "An configuration" should "return None for a key that's not present" in {
-    val Right(config) = Config.load("")
+    val Right(config) = Config.loadFromString("")
     config.getValue("name") should be(None)
   }
 }

@@ -1,23 +1,26 @@
 import scala.io.Source
 import json.path.pattern.Pattern
 import json.path.pattern.Property
+import config.Config
 
 object Main {
 
-  def main(args: Array[String]): Unit =
+  def main(args: Array[String]): Unit = {
+    val config = loadConfig()
     args.foreach { arg =>
       if (arg.endsWith(".json")) {
         println("extracting JavaScript from: %s".format(arg))
-        extractJavaScript(arg)
+        extractJavaScript(config, arg)
       } else if (arg.endsWith(".js")) {
         println("merging JavaScript from: %s".format(arg))
-        mergeJavaScriptIntoJson(arg)
+        mergeJavaScriptIntoJson(config, arg)
       } else {
         println("ignoring file: %s".format(arg))
       }
     }
+  }
 
-  private def extractJavaScript(file: String): Unit = {
+  private def extractJavaScript(config: Config, file: String): Unit = {
     val text = Source.fromFile(file).getLines().mkString("\n")
 
     var patterns = Map.empty[Pattern, String]
@@ -31,7 +34,7 @@ object Main {
     }
   }
 
-  private def mergeJavaScriptIntoJson(file: String): Unit = {
+  private def mergeJavaScriptIntoJson(config: Config, file: String): Unit = {
     val jsonFile = file.replace(".json.js", ".json")
     val outputFile = file.replace(".json.js", ".out.json")
 
@@ -50,5 +53,12 @@ object Main {
     val writer = new PrintWriter(new File(fileName))
     try writer.write(text)
     finally writer.close()
+  }
+
+  def loadConfig(): Config = {
+    Option(System.getProperty("user.home"))
+      .flatMap { userHome =>
+        Config.loadFromFile(userHome + "/.config/jstr.conf").toOption
+      }.getOrElse(Config.empty)
   }
 }
