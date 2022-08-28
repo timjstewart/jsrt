@@ -1,4 +1,5 @@
 import scala.io.Source
+
 import json.path.pattern.Pattern
 import json.path.pattern.Property
 import config.Config
@@ -21,30 +22,38 @@ object Main {
   }
 
   private def extractJavaScript(config: Config, file: String): Unit = {
-    val text = Source.fromFile(file).getLines().mkString("\n")
+    try {
+      val text = Source.fromFile(file).getLines().mkString("\n")
 
-    var patterns = Map.empty[Pattern, String]
-    Pattern.parse("**.name").foreach { pattern =>
-      patterns = patterns + (pattern -> "name")
-    }
+      var patterns = Map.empty[Pattern, String]
+      Pattern.parse(config.getValue("functionNamePattern", "**.name")).foreach { pattern =>
+        patterns = patterns + (pattern -> "name")
+      }
 
-    JsonToJavascriptExtractor.extract(text, patterns) match {
-      case Right(javaScript) => writeToFile(javaScript, file + ".js")
-      case Left(error)       => println("error: %s".format(error))
+      JsonToJavascriptExtractor.extract(text, patterns) match {
+        case Right(javaScript) => writeToFile(javaScript, file + ".js")
+        case Left(error)       => println("error: %s".format(error))
+      }
+    } catch {
+      case ex : java.io.FileNotFoundException => println("error: %s".format(ex.getMessage()))
     }
   }
 
   private def mergeJavaScriptIntoJson(config: Config, file: String): Unit = {
-    val jsonFile = file.replace(".json.js", ".json")
-    val outputFile = file.replace(".json.js", ".out.json")
+    try {
+      val jsonFile = file.replace(".json.js", ".json")
+      val outputFile = file.replace(".json.js", ".out.json")
 
-    val javaScript = Source.fromFile(file).getLines().mkString("\n")
-    val json = Source.fromFile(jsonFile).getLines().mkString("\n")
+      val javaScript = Source.fromFile(file).getLines().mkString("\n")
+      val json = Source.fromFile(jsonFile).getLines().mkString("\n")
 
-    JavaScriptToJsonConverter.merge(javaScript, json) match {
-      case Right(jsonText) => writeToFile(jsonText, outputFile)
-      case Left(error)     => println("error: %s".format(error))
-    }
+      JavaScriptToJsonConverter.merge(javaScript, json) match {
+        case Right(jsonText) => writeToFile(jsonText, outputFile)
+        case Left(error)     => println("error: %s".format(error))
+      }
+    } catch {
+          case ex : java.io.FileNotFoundException => println("error: %s".format(ex.getMessage()))
+        }
   }
 
   private def writeToFile(text: String, fileName: String): Unit = {
@@ -55,10 +64,10 @@ object Main {
     finally writer.close()
   }
 
-  def loadConfig(): Config = {
+  private def loadConfig(): Config = {
     Option(System.getProperty("user.home"))
       .flatMap { userHome =>
-        Config.loadFromFile(userHome + "/.config/jstr.conf").toOption
+        Config.loadFromFile(userHome + "/.config/jsrt/jsrt.conf").toOption
       }.getOrElse(Config.empty)
   }
 }

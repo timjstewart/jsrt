@@ -4,7 +4,7 @@ import json.path.pattern._
 import parser._
 
 import scala.util.matching.Regex.MatchData
-
+import text.Text._
 
 object JavaScriptToJsonConverter {
 
@@ -77,7 +77,7 @@ object JavaScriptToJsonConverter {
         suffix <- functionSuffixRegEx.findFirstMatchIn(block)
       } yield block.substring(prefix.end, suffix.start)) match {
         case Some(body) =>
-          Right(unindent(body))
+          Right(body.unindent())
         case None => Left("could not get function body from: %s".format(block))
       }
     }

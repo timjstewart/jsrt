@@ -3,7 +3,5 @@
 /.metals/
 /project/
 /target/
-
 /.scalafmt.conf
-/src/test/json/example.json.js
-/src/test/json/example.out.json
+/src/test/json/example*.*

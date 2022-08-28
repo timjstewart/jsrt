@@ -6,12 +6,15 @@ object Config {
 
   val empty: Config = new Config(Map.empty[String, String])
 
-  def loadFromFile(fileName: String): Either[String, Config] =
+  def loadFromFile(fileName: String): Either[String, Config] = {
     try {
       loadFromString(Source.fromFile(fileName).getLines().mkString("\n"))
     } catch {
-      case ex: java.io.FileNotFoundException => Right(Config.empty)
+      case ex: java.io.FileNotFoundException =>  {
+        Right(Config.empty)
+      }
     }
+  }
 
   def loadFromString(configText: String): Either[String, Config] =
     Right(
@@ -22,7 +25,6 @@ object Config {
             else {
               val parts = line.split('=')
               if (parts.length != 2) {
-                println("ignoring line: %s".format(line))
                 accum
               } else {
                 accum + (parts(0).trim -> parts(1).trim)
@@ -36,4 +38,5 @@ object Config {
 class Config(values: Map[String, String] = Map.empty) {
   def getKeys(): Set[String] = values.keySet
   def getValue(key: String): Option[String] = values.get(key)
+  def getValue(key: String, default: String): String = values.getOrElse(key, default)
 }
