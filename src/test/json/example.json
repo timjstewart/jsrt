@@ -1,7 +1,8 @@
 [
     {
         "top": {
-            "blocks": [{
+            "blocks": [
+                {
                     "name": "alert block one",
                     "jsCode": "console.alert('Hi block one');"
                 },
@@ -15,15 +16,15 @@
     },
     {
         "top": {
-            "blocks": [{
+            "blocks": [
+                {
                     "name": "enumerate over strings",
-                    "jsCode": "
-                    // block three
-                    var x = new Date();
-                    _.forEach(['one', 'two', 'three'], function(number) {
-                        console.alert(number);
-                    });
-                    console.alert('Hi three', x);"
+                    "jsCode": "// block three
+var x = new Date();
+_.forEach(['one', 'two', 'three'], function(number) {
+console.alert(number);
+});
+console.alert('Hi three', x);"
                 },
                 {
                     "name": "alert block four",

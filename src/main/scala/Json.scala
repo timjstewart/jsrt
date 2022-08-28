@@ -56,14 +56,14 @@ case class JArray(elements: List[JValue]) extends JValue {
         }
         // right before the element
         if (anyObjects) {
-            indent(sb, level + 1)
+          indent(sb, level + 1)
         }
         x._1.prettyPrintInternal(sb, level + 1)
       }
       // after all the elements
       if (anyObjects) {
-          sb.append("\n")
-          indent(sb, level)
+        sb.append("\n")
+        indent(sb, level)
       }
       sb.append("]")
     }

@@ -15,15 +15,15 @@ object JavaScriptToJsonConverter {
   type CodeMap = Map[JsonPath, JavaScriptText]
 
   def merge(
-        javaScript: JavaScriptText,
-        jsonText: JsonText
-    ): Either[String, JsonText] = {
-      for {
-        jValue <- Parser.parse(jsonText)
-        extractCodeMap <- JavaScriptParser.parse(javaScript)
-        merged <- injectCodeMap(jValue, extractCodeMap)
-      } yield merged
-    }
+      javaScript: JavaScriptText,
+      jsonText: JsonText
+  ): Either[String, JsonText] = {
+    for {
+      jValue <- Parser.parse(jsonText)
+      extractCodeMap <- JavaScriptParser.parse(javaScript)
+      merged <- injectCodeMap(jValue, extractCodeMap)
+    } yield merged
+  }
 
   private object JavaScriptParser {
 
@@ -48,7 +48,9 @@ object JavaScriptToJsonConverter {
     ): Either[String, List[JavaScriptText]] = {
       def loop(matches: List[MatchData]): List[JavaScriptText] = matches match {
         case first :: second :: rest => // create block between first and second
-         javaScript.substring(first.start, second.start) :: loop(second :: rest)
+          javaScript.substring(first.start, second.start) :: loop(
+            second :: rest
+          )
         case last :: Nil => // create block between first and last
           List(javaScript.substring(last.start))
         case Nil => Nil
@@ -71,7 +73,9 @@ object JavaScriptToJsonConverter {
       }
     }
 
-    private def extractCodeBody(block: JavaScriptText): Either[String, JavaScriptText] = {
+    private def extractCodeBody(
+        block: JavaScriptText
+    ): Either[String, JavaScriptText] = {
       (for {
         prefix <- functionPrefixRegEx.findFirstMatchIn(block)
         suffix <- functionSuffixRegEx.findFirstMatchIn(block)

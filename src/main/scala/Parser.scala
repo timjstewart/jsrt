@@ -12,7 +12,7 @@ object Parser {
   type Result = Either[String, JValue]
 
   def parse(json: String): Result = Lexer.tokenize(json) match {
-    case Left(error)                      => Left(error)
+    case Left(error) => Left(error)
     case Right(Tuple2(tokens, remaining)) =>
       val result = tokens.foldLeft[Either[String, List[JValue]]](
         Right(List.empty[JValue])

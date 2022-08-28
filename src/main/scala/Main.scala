@@ -26,8 +26,9 @@ object Main {
       val text = Source.fromFile(file).getLines().mkString("\n")
 
       var patterns = Map.empty[Pattern, String]
-      Pattern.parse(config.getValue("functionNamePattern", "**.name")).foreach { pattern =>
-        patterns = patterns + (pattern -> "name")
+      Pattern.parse(config.getValue("functionNamePattern", "**.name")).foreach {
+        pattern =>
+          patterns = patterns + (pattern -> "name")
       }
 
       JsonToJavascriptExtractor.extract(text, patterns) match {
@@ -35,7 +36,8 @@ object Main {
         case Left(error)       => println("error: %s".format(error))
       }
     } catch {
-      case ex : java.io.FileNotFoundException => println("error: %s".format(ex.getMessage()))
+      case ex: java.io.FileNotFoundException =>
+        println("error: %s".format(ex.getMessage()))
     }
   }
 
@@ -52,8 +54,9 @@ object Main {
         case Left(error)     => println("error: %s".format(error))
       }
     } catch {
-          case ex : java.io.FileNotFoundException => println("error: %s".format(ex.getMessage()))
-        }
+      case ex: java.io.FileNotFoundException =>
+        println("error: %s".format(ex.getMessage()))
+    }
   }
 
   private def writeToFile(text: String, fileName: String): Unit = {
@@ -68,6 +71,7 @@ object Main {
     Option(System.getProperty("user.home"))
       .flatMap { userHome =>
         Config.loadFromFile(userHome + "/.config/jsrt/jsrt.conf").toOption
-      }.getOrElse(Config.empty)
+      }
+      .getOrElse(Config.empty)
   }
 }

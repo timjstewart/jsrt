@@ -95,7 +95,8 @@ function %s() {
         else {
           List(Math.max(0, s.indexWhere(c => !c.isWhitespace)))
         }
-      ).min
+      )
+      .min
 
     // move the text over to the left
     text

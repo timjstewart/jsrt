@@ -10,7 +10,7 @@ object Config {
     try {
       loadFromString(Source.fromFile(fileName).getLines().mkString("\n"))
     } catch {
-      case ex: java.io.FileNotFoundException =>  {
+      case ex: java.io.FileNotFoundException => {
         Right(Config.empty)
       }
     }
@@ -38,5 +38,6 @@ object Config {
 class Config(values: Map[String, String] = Map.empty) {
   def getKeys(): Set[String] = values.keySet
   def getValue(key: String): Option[String] = values.get(key)
-  def getValue(key: String, default: String): String = values.getOrElse(key, default)
+  def getValue(key: String, default: String): String =
+    values.getOrElse(key, default)
 }

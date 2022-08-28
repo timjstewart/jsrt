@@ -8,12 +8,15 @@ package path {
 
   sealed case class JsonPath(steps: List[Step]) {
     override def toString = steps match {
-      case Nil   => "null"
-      case steps => steps.reverse.zipWithIndex.map {
-        case (PropertyName(name), index) if (index == 0) => name
-        case (PropertyName(name), _) => ".%s".format(name)
-        case (step, _) => step.text
-      }.mkString("")
+      case Nil => "null"
+      case steps =>
+        steps.reverse.zipWithIndex
+          .map {
+            case (PropertyName(name), index) if (index == 0) => name
+            case (PropertyName(name), _) => ".%s".format(name)
+            case (step, _)               => step.text
+          }
+          .mkString("")
     }
 
     def ::(step: Step): JsonPath = this.copy(steps = step :: this.steps)
