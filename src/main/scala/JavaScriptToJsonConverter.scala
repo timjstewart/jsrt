@@ -46,16 +46,15 @@ object JavaScriptToJsonConverter {
     private def extractFunctions(
         javaScript: JavaScriptText
     ): Either[String, List[JavaScriptText]] = {
-      def loop(matches: List[MatchData]): List[JavaScriptText] = matches match {
+      @annotation.tailrec
+      def loop(matches: List[MatchData], accum: List[JavaScriptText]): List[JavaScriptText] = matches match {
         case first :: second :: rest => // create block between first and second
-          javaScript.substring(first.start, second.start) :: loop(
-            second :: rest
-          )
+          loop(second :: rest, javaScript.substring(first.start, second.start) :: accum)
         case last :: Nil => // create block between first and last
-          List(javaScript.substring(last.start))
-        case Nil => Nil
+          javaScript.substring(last.start) :: accum
+        case Nil => accum
       }
-      Right(loop(pathRegEx.findAllMatchIn(javaScript).toList))
+      Right(loop(pathRegEx.findAllMatchIn(javaScript).toList, List.empty).reverse)
     }
 
     private def combineCodeMaps(
