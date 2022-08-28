@@ -1,10 +1,10 @@
 package parser
 
+import lexer._
+import lexer.Lexer._
 import json._
 
 object Parser {
-  import lexer._
-  import lexer.Lexer._
 
   val JTrue = JBool(true)
   val JFalse = JBool(false)

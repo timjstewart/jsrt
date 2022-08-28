@@ -245,7 +245,7 @@ class LexerSpec extends AnyFlatSpec with should.Matchers with EitherValues {
     val text = """
 {
     "happy": {
-	}
+  }
 }
 """
     tokenValues(text) should be(

@@ -113,7 +113,7 @@ function %s() {
   }
 
   private def indent(text: String): String = {
-    return leftJustify(text)
+    leftJustify(text)
       .split("\n")
       .filter(_.length() > 0)
       .map(line => "    %s".format(line))

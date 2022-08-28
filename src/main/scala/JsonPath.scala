@@ -7,7 +7,7 @@ package path {
   case class PropertyName(name: String) extends Step("%s".format(name))
 
   sealed case class JsonPath(steps: List[Step]) {
-    override def toString = steps match {
+    override def toString: String = steps match {
       case Nil => "null"
       case steps =>
         steps.reverse.zipWithIndex

@@ -1,4 +1,6 @@
 import scala.io.Source
+import java.io.File
+import java.io.PrintWriter
 
 import json.path.pattern.Pattern
 import json.path.pattern.Property
@@ -60,8 +62,6 @@ object Main {
   }
 
   private def writeToFile(text: String, fileName: String): Unit = {
-    import java.io.File
-    import java.io.PrintWriter
     val writer = new PrintWriter(new File(fileName))
     try writer.write(text)
     finally writer.close()

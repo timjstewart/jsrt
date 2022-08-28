@@ -41,7 +41,7 @@ object Lexer {
     def advance(by: String): Result = {
       if (text.substring(index).startsWith(by)) {
         var res = this
-        for (c <- by) {
+        for {c <- by} {
           res = res.advance()
         }
         Right(Tuple2(List(GenericToken(by, this)), res))
@@ -132,7 +132,7 @@ object Lexer {
           case Some('n')  => tokenizeNull(b)
           case Some(c) if c.isWhitespace        => success(b.advance())
           case Some(c) if c.isDigit || c == '-' => tokenizeNumber(b)
-          case c => Left("lexer: fail: %s".format(c))
+          case c: Any => Left("lexer: fail: %s".format(c))
         }
       }
       .map { case Tuple2(tokens, remaining) =>

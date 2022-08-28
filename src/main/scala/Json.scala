@@ -1,12 +1,12 @@
 package json
 
 sealed abstract class JValue {
-  def isObject = false
-  def isArray = false
-  def isNumber = false
-  def isBool = false
-  def isNull = false
-  def isString = false
+  def isObject: Boolean = false
+  def isArray: Boolean = false
+  def isNumber: Boolean = false
+  def isBool: Boolean = false
+  def isNull: Boolean = false
+  def isString: Boolean = false
 
   def prettyPrint: String = {
     val sb = new StringBuffer()
@@ -25,7 +25,7 @@ sealed abstract class JValue {
 }
 
 case object JNull extends JValue {
-  override def isNull = true
+  override def isNull: Boolean = true
 
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("null")
@@ -33,7 +33,7 @@ case object JNull extends JValue {
 }
 
 case class JArray(elements: List[JValue]) extends JValue {
-  override def isArray = true
+  override def isArray: Boolean = true
 
   override def prettyPrintInternal(sb: StringBuffer, level: Int): Unit = {
     sb.append("[")

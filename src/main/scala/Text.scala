@@ -7,8 +7,8 @@ object Text {
         .split('\n')
         .map { line =>
           val result = line.indexWhere(c => c != ' ') match {
-            case -1 => 0
-            case x  => x
+            case -1     => 0
+            case x: Int => x
           }
           result
         }

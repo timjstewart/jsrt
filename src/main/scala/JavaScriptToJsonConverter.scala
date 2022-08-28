@@ -163,7 +163,7 @@ object JavaScriptToJsonConverter {
       case JString(value) =>
         JString(extractCodeMap.find { _._1 == path }.map(_._2).getOrElse(value))
 
-      case x =>
+      case x: Any =>
         println("Doing nothing for: %s".format(x))
         x
     }
