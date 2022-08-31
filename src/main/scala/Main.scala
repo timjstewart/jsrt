@@ -27,7 +27,7 @@ object Main {
     try {
       val text = Source.fromFile(file).getLines().mkString("\n")
 
-      for {
+      (for {
         functionNamePattern <- config.getPattern("functionNamePattern")
         exportPattern <- config.getPattern("exportPattern")
       } yield {
@@ -41,6 +41,9 @@ object Main {
           case Right(javaScript) => writeToFile(javaScript, file + ".js")
           case Left(error)       => println("error: %s".format(error))
         }
+      }) match {
+        case Left(error) => println("error: %s".format(error))
+        case Right(_)    => ()
       }
     } catch {
       case ex: java.io.FileNotFoundException =>

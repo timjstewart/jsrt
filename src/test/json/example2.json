@@ -4,11 +4,11 @@
             "blocks": [
                 {
                     "functionName": "alert block one",
-                    "jsCode": "console.alert('Hi block one');"
+                    "code": "console.alert('Hi block one');"
                 },
                 {
                     "functionName": "alert block two",
-                    "jsCode": "console.alert('Hi block two');"
+                    "code": "console.alert('Hi block two');"
                 }
             ]
         }
@@ -18,7 +18,7 @@
             "blocks": [
                 {
                     "functionName": "enumerate over strings",
-                    "jsCode": "
+                    "code": "
                     // block three
                     var x = new Date();
                     _.forEach(['one', 'two', 'three'], function(number) {
@@ -28,7 +28,7 @@
                 },
                 {
                     "functionName": "alert block four",
-                    "jsCode": "console.alert('Hi block four');"
+                    "code": "console.alert('Hi block four');"
                 }
             ]
         }
