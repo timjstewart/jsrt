@@ -27,25 +27,21 @@ object Main {
     try {
       val text = Source.fromFile(file).getLines().mkString("\n")
 
-      var patterns = Map.empty[Pattern, String]
-      Pattern.parse(config.getValue("functionNamePattern", "**.name")).foreach {
-        pattern =>
-          patterns = patterns + (pattern -> "name")
+      for {
+        functionNamePattern <- config.getPattern("functionNamePattern")
+        exportPattern <- config.getPattern("exportPattern")
+      } yield {
+        val patterns = Map(functionNamePattern -> "functionName")
+        val exportPatterns = List(exportPattern)
+        JsonToJavascriptExtractor.extract(
+          text,
+          exportPatterns,
+          patterns
+        ) match {
+          case Right(javaScript) => writeToFile(javaScript, file + ".js")
+          case Left(error)       => println("error: %s".format(error))
+        }
       }
-
-      Pattern.parse("**.jsFunc").map(x => List(x)) match {
-        case Right(exportPatterns) =>
-          JsonToJavascriptExtractor.extract(
-            text,
-            exportPatterns,
-            patterns
-          ) match {
-            case Right(javaScript) => writeToFile(javaScript, file + ".js")
-            case Left(error)       => println("error: %s".format(error))
-          }
-        case Left(error) => println("error: %s".format(error))
-      }
-
     } catch {
       case ex: java.io.FileNotFoundException =>
         println("error: %s".format(ex.getMessage()))

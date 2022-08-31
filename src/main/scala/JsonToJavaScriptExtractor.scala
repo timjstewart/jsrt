@@ -94,7 +94,7 @@ object JsonToJavascriptExtractor {
 function %s() {
 %s
 }
-""".format(path, jsFuncName(collected.get("name")), indent(text)))
+""".format(path, jsFuncName(collected.get("functionName")), indent(text)))
   }
 
   private def jsFuncName(name: Option[String]): String = name match {
