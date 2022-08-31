@@ -18,7 +18,7 @@ sealed abstract class JValue {
   protected[json] def prettyPrintInternal(sb: StringBuffer, level: Int): Unit
 
   protected def indent(sb: StringBuffer, level: Int): Unit = {
-    for (_ <- 0 until level) {
+    for {_ <- 0 until level} {
       sb.append("  ")
     }
   }

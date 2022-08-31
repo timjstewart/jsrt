@@ -9,7 +9,7 @@ package path {
   sealed case class JsonPath(steps: List[Step]) {
     override def toString: String = steps match {
       case Nil => "null"
-      case steps =>
+      case steps: Any =>
         steps.reverse.zipWithIndex
           .map {
             case (PropertyName(name), index) if (index == 0) => name

@@ -150,15 +150,15 @@ object JavaScriptToJsonConverter {
         result
 
       case JObject(properties) =>
-        var newProperties = List.empty[Tuple2[String, JValue]]
+        val newProperties = scala.collection.mutable.ListBuffer.empty[Tuple2[String, JValue]]
         properties.foreach { case (name, value) =>
-          newProperties :+= name -> traverseJson(
+          newProperties += name -> traverseJson(
             PropertyName(name) :: path,
             value,
             extractCodeMap
           )
         }
-        JObject(newProperties)
+        JObject(newProperties.toList)
 
       case JString(value) =>
         JString(extractCodeMap.find { _._1 == path }.map(_._2).getOrElse(value))

@@ -40,7 +40,7 @@ object Config {
 class Config(values: Map[String, String] = Map.empty) {
   def getKeys(): Set[String] = values.keySet
   def getValue(key: String): Option[String] = values.get(key)
-  def getPattern(key: String): Either[String,Pattern] = values.get(key) match {
+  def getPattern(key: String): Either[String, Pattern] = values.get(key) match {
     case None => Left("no configuration value for key: %s".format(key))
     case Some(value) => Pattern.parse(value)
   }

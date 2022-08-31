@@ -53,8 +53,8 @@ sealed case class Pattern(patterns: List[Step]) {
                 case Nil                      => true
                 case ArrayIndex(_) :: rhsRest => loop(patternSteps, rhsRest)
                 case PropertyName(rhs) :: rhsRest =>
-                  if (lhs == rhs) loop(lhsRest, rhsRest)
-                  else loop(patternSteps, rhsRest)
+                  if (lhs == rhs) { loop(lhsRest, rhsRest) }
+                  else { loop(patternSteps, rhsRest) }
               }
 
             case PropertyWildCard =>
@@ -84,7 +84,7 @@ sealed case class Pattern(patterns: List[Step]) {
             case DeepWildCard =>
               pathSteps match {
                 case Nil                      => true
-                case ArrayIndex(_) :: rhsRest => ???
+                case ArrayIndex(_) :: rhsRest => loop(patternSteps, rhsRest)
                 case PropertyName(_) :: rhsRest =>
                   loop(lookAhead :: lhsRest, rhsRest)
               }

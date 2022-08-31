@@ -41,7 +41,7 @@ object Lexer {
     def advance(by: String): Result = {
       if (text.substring(index).startsWith(by)) {
         var res = this
-        for {c <- by} {
+        for { c <- by } {
           res = res.advance()
         }
         Right(Tuple2(List(GenericToken(by, this)), res))
