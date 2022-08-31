@@ -3,16 +3,25 @@ import flatspec._
 import matchers._
 import org.scalatest.matchers.should._
 
+import json.path.pattern._
+
 class JsonToJavascriptExtractorSpec
     extends AnyFlatSpec
     with should.Matchers
     with EitherValues {
 
-  "An extractor" should "extract an empty array correctly" in {
-    JsonToJavascriptExtractor.extract("[]").value shouldBe ("")
+  def withPattern(patternString: String)(testFunc: List[Pattern] => Any): Unit = {
+    Pattern.parse(patternString) match {
+      case Right(pattern) => testFunc(List(pattern))
+      case Left(error) => fail(error)
+    }
   }
 
-  it should "extract two blocks of code" in {
+  "An extractor" should "extract an empty array correctly" in withPattern("**.jsCode") { patterns =>
+    JsonToJavascriptExtractor.extract("[]", patterns).value shouldBe ("")
+  }
+
+  it should "extract two blocks of code" in withPattern("**.jsCode") { patterns =>
     val text = """
 [
   {
@@ -27,7 +36,7 @@ class JsonToJavascriptExtractorSpec
   }
 ]
 """
-    JsonToJavascriptExtractor.extract(text).value shouldBe ("""
+    JsonToJavascriptExtractor.extract(text, patterns).value shouldBe ("""
 /** path([0].top[0].jsCode) */
 function func() {
     return true;
@@ -40,7 +49,7 @@ function func() {
 """.trim)
   }
 
-  it should "extract code with indentation" in {
+  it should "extract code with indentation" in withPattern("**.jsCode") { patterns =>
     val text = """
 [
   {
@@ -53,7 +62,7 @@ _.forEach(names, function(name) {
   ]
 }
     """
-    JsonToJavascriptExtractor.extract(text).value shouldBe ("""
+    JsonToJavascriptExtractor.extract(text, patterns).value shouldBe ("""
 /** path([0].jsCode) */
 function func() {
     _.forEach(names, function(name) {
@@ -65,3 +74,4 @@ function func() {
     """.trim)
   }
 }
+

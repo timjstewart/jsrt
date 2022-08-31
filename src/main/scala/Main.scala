@@ -33,10 +33,19 @@ object Main {
           patterns = patterns + (pattern -> "name")
       }
 
-      JsonToJavascriptExtractor.extract(text, patterns) match {
-        case Right(javaScript) => writeToFile(javaScript, file + ".js")
-        case Left(error)       => println("error: %s".format(error))
+      Pattern.parse("**.jsFunc").map(x => List(x)) match {
+        case Right(exportPatterns) =>
+          JsonToJavascriptExtractor.extract(
+            text,
+            exportPatterns,
+            patterns
+          ) match {
+            case Right(javaScript) => writeToFile(javaScript, file + ".js")
+            case Left(error)       => println("error: %s".format(error))
+          }
+        case Left(error) => println("error: %s".format(error))
       }
+
     } catch {
       case ex: java.io.FileNotFoundException =>
         println("error: %s".format(ex.getMessage()))

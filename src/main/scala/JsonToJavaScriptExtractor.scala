@@ -7,8 +7,20 @@ object JsonToJavascriptExtractor {
 
   type SourceCode = String
 
+  /** extracts JavaScript code from a JSON string
+    *
+    * @param jsonText
+    *   the JSON text that contains JavaScript function bodies.
+    * @param patterns
+    *   a map from patterns to pattern names. As the JSON document is processed,
+    *   strings that match the patterns in this map will be remembered and made
+    *   available for use when source code is being rendered.
+    * @return
+    *   either an error message or the extracted JavaScript source code
+    */
   def extract(
       jsonText: String,
+      exportPatterns: List[Pattern],
       patterns: Map[Pattern, String] = Map.empty
   ): Either[String, SourceCode] =
     Parser.parse(jsonText) match {
@@ -18,7 +30,8 @@ object JsonToJavascriptExtractor {
             JsonPath(),
             json,
             new StringBuffer(),
-            patterns
+            patterns,
+            exportPatterns
           ).toString.trim
         )
       case Left(error) => Left(error)
@@ -29,6 +42,7 @@ object JsonToJavascriptExtractor {
       jValue: JValue,
       output: StringBuffer,
       patterns: Map[Pattern, String],
+      exportPatterns: List[Pattern],
       collected: scala.collection.mutable.Map[String, String] =
         scala.collection.mutable.Map.empty
   ): StringBuffer = {
@@ -40,6 +54,7 @@ object JsonToJavascriptExtractor {
             element,
             output,
             patterns,
+            exportPatterns,
             collected
           )
         }
@@ -50,6 +65,7 @@ object JsonToJavascriptExtractor {
             value,
             output,
             patterns,
+            exportPatterns,
             collected
           )
         }
@@ -59,7 +75,7 @@ object JsonToJavascriptExtractor {
             collected += (name -> value)
           }
         }
-        if (shouldExport(path)) {
+        if (shouldExport(exportPatterns, path)) {
           exportFunction(output, path, value, collected)
         }
       case _ => ()
@@ -83,8 +99,11 @@ function %s() {
 
   private def jsFuncName(name: Option[String]): String = name match {
     case None       => "func"
-    case Some(name) => name.replace(' ', '_')
+    case Some(name) => makeLegalIdentifier(name)
   }
+
+  private def makeLegalIdentifier(s: String): String =
+    s.replace(' ', '_').replace('-', '_').replace('@', '_')
 
   private def leftJustify(text: String): String = {
     // compute how many spaces the text can be moved to the left
@@ -120,8 +139,12 @@ function %s() {
       .mkString("\n")
   }
 
-  private def shouldExport(path: JsonPath): Boolean = path match {
-    case JsonPath(PropertyName(name) :: _) if name == "jsCode" => true
-    case _                                                     => false
+  private def shouldExport(
+      exportPatterns: List[Pattern],
+      path: JsonPath
+  ): Boolean = path match {
+    case JsonPath(PropertyName(name) :: _) =>
+      exportPatterns.exists(p => p.matches(path))
+    case _ => false
   }
 }
