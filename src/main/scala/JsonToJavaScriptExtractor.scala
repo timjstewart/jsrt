@@ -58,10 +58,10 @@ object JsonToJavascriptExtractor {
             collected
           )
         }
+
       case JObject(properties) =>
         properties.foreach { case (name, value) =>
-
-          // See if the current property matches the pattern.
+          // See if the object's property name matches the pattern.
           patterns.foreach {
             case (pattern: Pattern, key: String) => {
               if (pattern.matches(path)) {
@@ -79,6 +79,7 @@ object JsonToJavascriptExtractor {
             collected
           )
         }
+
       case JString(value) =>
         patterns.foreach { case (pattern: Pattern, name: String) =>
           if (pattern.matches(path)) {
@@ -88,6 +89,7 @@ object JsonToJavascriptExtractor {
         if (shouldExport(exportPatterns, path)) {
           exportFunction(output, path, value, collected)
         }
+
       case _ => ()
     }
     output

@@ -18,8 +18,7 @@
             "blocks": [
                 {
                     "functionName": "enumerate over strings",
-                    "code": "
-                    // block three
+                    "code": "// block three
                     var x = new Date();
                     _.forEach(['one', 'two', 'three'], function(number) {
                         console.alert(number);
