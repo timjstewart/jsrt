@@ -60,6 +60,16 @@ object JsonToJavascriptExtractor {
         }
       case JObject(properties) =>
         properties.foreach { case (name, value) =>
+
+          // See if the current property matches the pattern.
+          patterns.foreach {
+            case (pattern: Pattern, key: String) => {
+              if (pattern.matches(path)) {
+                collected += (key -> path.steps.head.text)
+              }
+            }
+          }
+
           traverseJson(
             PropertyName(name) :: path,
             value,

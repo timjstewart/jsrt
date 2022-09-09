@@ -5,20 +5,23 @@ import java.io.PrintWriter
 import json.path.pattern.Pattern
 import json.path.pattern.Property
 import config.Config
+import arguments.Arguments
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-    val config = loadConfig()
-    args.foreach { arg =>
-      if (arg.endsWith(".json")) {
-        println("extracting JavaScript from: %s".format(arg))
-        extractJavaScript(config, arg)
-      } else if (arg.endsWith(".js")) {
-        println("merging JavaScript from: %s".format(arg))
-        mergeJavaScriptIntoJson(config, arg)
-      } else {
-        println("ignoring file: %s".format(arg))
+    Arguments.parse(args).map { arguments =>
+      val config = loadConfig(arguments.configFile)
+      arguments.files.foreach { fileName =>
+        if (fileName.endsWith(".json")) {
+          println("extracting JavaScript from: %s".format(fileName))
+          extractJavaScript(config, fileName)
+        } else if (fileName.endsWith(".js")) {
+          println("merging JavaScript from: %s".format(fileName))
+          mergeJavaScriptIntoJson(config, fileName)
+        } else {
+          println("ignoring file: %s".format(fileName))
+        }
       }
     }
   }
@@ -26,7 +29,6 @@ object Main {
   private def extractJavaScript(config: Config, file: String): Unit = {
     try {
       val text = Source.fromFile(file).getLines().mkString("\n")
-
       (for {
         functionNamePattern <- config.getPattern("functionNamePattern")
         exportPattern <- config.getPattern("exportPattern")
@@ -75,11 +77,22 @@ object Main {
     finally writer.close()
   }
 
-  private def loadConfig(): Config = {
-    Option(System.getProperty("user.home"))
-      .flatMap { userHome =>
-        Config.loadFromFile(userHome + "/.config/jsrt/jsrt.conf").toOption
+  private def loadConfig(configFile: Option[String]): Config = {
+    replaceTilde(configFile.getOrElse( "~/.config/jsrt/jsrt.conf"))
+      .flatMap(replaceTilde)
+      .flatMap {
+        fileName => Config.loadFromFile(fileName).toOption
       }
       .getOrElse(Config.empty)
+  }
+
+  private def replaceTilde(fileName: String): Option[String] = {
+    if (fileName.startsWith("~")) {
+      Option(System.getProperty("user.home")).map { userHome =>
+        fileName.replaceFirst("~", userHome)
+      }
+    } else {
+      Some(fileName)
+    }
   }
 }
